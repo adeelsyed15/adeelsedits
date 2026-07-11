@@ -139,6 +139,7 @@ export default function Home() {
         <div className="wordmark">Adeel</div>
         <div className="nav-right">
           <div className="nav-links">
+            <a href="#reel">Reel</a>
             <a href="#work">Work</a>
             <a href="#workflow">Workflow</a>
             <a href="#about">About</a>
@@ -180,6 +181,33 @@ export default function Home() {
           <div className="cta-row">
             <BookIntroBtn />
             <a href="#work" className="btn-secondary">See the work ↓</a>
+          </div>
+        </div>
+      </section>
+
+      {/* SHOWREEL */}
+      <section className="showreel" id="reel">
+        <div className="container">
+          <div className="section-label">// The Reel</div>
+          <h2 className="section-title">75 seconds.</h2>
+          <p className="showreel-sub">
+            Direct Response, cinematic pacing, AI-native workflow. A year of work, condensed.
+          </p>
+          <div className="reel-frame">
+            <video
+              className="reel-video"
+              controls
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+            >
+              <source src="/reel.mp4" type="video/mp4" />
+            </video>
+          </div>
+          <div className="reel-caption">
+            Direct Response<span className="sep">·</span>VSL + Ad<span className="sep">·</span>AI-native workflow
           </div>
         </div>
       </section>
