@@ -120,8 +120,16 @@ const faqItems = [
   },
 ]
 
+const CAL_URL = 'https://cal.com/adeel-abbas-dr/intro'
+
 const BookIntroBtn = ({ style }) => (
-  <a href="#contact" className="btn-primary" style={style}>
+  <a
+    href={CAL_URL}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="btn-primary"
+    style={style}
+  >
     Book a 15-min intro →
   </a>
 )
@@ -144,7 +152,7 @@ export default function Home() {
             <a href="#workflow">Workflow</a>
             <a href="#about">About</a>
           </div>
-          <a href="#contact" className="nav-cta">Book a Call →</a>
+          <a href={CAL_URL} target="_blank" rel="noopener noreferrer" className="nav-cta">Book a Call →</a>
         </div>
       </nav>
 
@@ -645,7 +653,7 @@ export default function Home() {
         <h2>
           If you're running high-ticket DR and need an editor who can keep up, <em>let's talk.</em>
         </h2>
-        <a href="#contact" className="btn-primary">Book a 15-min intro →</a>
+        <a href={CAL_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">Book a 15-min intro →</a>
         <span className="email">
           or email <a href="mailto:hello@adeelsedits.com">hello@adeelsedits.com</a>
         </span>
