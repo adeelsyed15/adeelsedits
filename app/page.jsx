@@ -323,6 +323,85 @@ export default function Home() {
         </div>
       </section>
 
+      {/* MARKETER MINDSET */}
+      <section className="marketer-mind" id="mindset">
+        <div className="container">
+          <div className="section-label">// How I Think</div>
+          <h2 className="section-title">I think like a media buyer.</h2>
+          <p className="mindset-lead">
+            Editing for direct response is not decoration. Every cut is a bet on ROAS. Every first frame is a thumb-stop test. If your CPA is running $110 against a $75 target, the ad has to solve for the gap — not just look nice.
+          </p>
+
+          <div className="mindset-pillars">
+            <div className="pillar">
+              <div className="pillar-num">01</div>
+              <h3>Economics-first thinking</h3>
+              <p>
+                I understand your unit economics before I open Premiere. CPA, LTV, AOV, break-even ROAS — these are inputs to the edit, not afterthoughts. If the target CPA is $75 and the current control is running at $110, I know the ad has to solve for the difference.
+              </p>
+            </div>
+
+            <div className="pillar">
+              <div className="pillar-num">02</div>
+              <h3>Hooks engineered, not templated</h3>
+              <p>
+                Hook rate and hold rate are the only metrics that matter in the first three seconds. I don't chase Reels trends — I engineer hooks against the promise. Every winning creative has a testable thesis, not a "vibe."
+              </p>
+            </div>
+
+            <div className="pillar">
+              <div className="pillar-num">03</div>
+              <h3>Iteration cadence built for testing</h3>
+              <p>
+                I ship at ad-cycle speed — 2–3 days per variant. I structure ads in testable batches, not one-offs. I know when the control is about to fatigue and when to angle-shift instead of restart.
+              </p>
+            </div>
+
+            <div className="pillar">
+              <div className="pillar-num">04</div>
+              <h3>Native to Meta + Google workflows</h3>
+              <p>
+                Aspect ratios, placement-native cuts, safe zones — deliverables ship ready for Ad Manager, not as cinema cuts your buyer has to re-slice. I read the Meta Ad Library before I cut. Same language as your media buyer.
+              </p>
+            </div>
+          </div>
+
+          <div className="vocab-panel">
+            <div className="vocab-label">Fluent in</div>
+            <div className="vocab-grid">
+              <span className="vocab-chip">ROAS</span>
+              <span className="vocab-chip">CPA</span>
+              <span className="vocab-chip">CPM</span>
+              <span className="vocab-chip">CTR</span>
+              <span className="vocab-chip">CVR</span>
+              <span className="vocab-chip">AOV</span>
+              <span className="vocab-chip">LTV</span>
+              <span className="vocab-chip">Break-even ROAS</span>
+              <span className="vocab-chip">Quality Score</span>
+              <span className="vocab-sep"></span>
+              <span className="vocab-chip">Hook Rate</span>
+              <span className="vocab-chip">Hold Rate</span>
+              <span className="vocab-chip">Thumb-Stop</span>
+              <span className="vocab-chip">First-Frame Test</span>
+              <span className="vocab-sep"></span>
+              <span className="vocab-chip">Meta Ad Library</span>
+              <span className="vocab-chip">Winning Control</span>
+              <span className="vocab-chip">Ad Set Structure</span>
+              <span className="vocab-chip">TOF / MOF / BOF</span>
+              <span className="vocab-chip">Retargeting</span>
+              <span className="vocab-chip">Cold Traffic</span>
+              <span className="vocab-chip">Frequency Cap</span>
+              <span className="vocab-chip">Ad Fatigue</span>
+              <span className="vocab-chip">Placement-Native</span>
+              <span className="vocab-sep"></span>
+              <span className="vocab-chip">Iteration Cadence</span>
+              <span className="vocab-chip">Creative Testing</span>
+              <span className="vocab-chip">Angle Testing</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CASE STUDY */}
       <section className="case-study">
         <div className="container">
