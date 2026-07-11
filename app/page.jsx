@@ -149,7 +149,17 @@ export default function Home() {
 
       {/* HERO */}
       <section className="hero">
-        <div className="reel-marker">75s Reel</div>
+        <video
+          className="hero-video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        >
+          <source src="/reel.mp4" type="video/mp4" />
+        </video>
+        <div className="hero-overlay" />
         <div className="hero-inner">
           <div className="availability">
             <span className="dot"></span>
