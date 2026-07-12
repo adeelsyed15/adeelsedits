@@ -1,5 +1,64 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+
+// --- Scroll-triggered reveal hook ---
+function useReveal() {
+  const ref = useRef(null)
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    if (!ref.current) return
+    const el = ref.current
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect() } },
+      { threshold: 0.12, rootMargin: '-40px 0px' }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+  return [ref, visible]
+}
+
+function Reveal({ children, delay = 0, as: Tag = 'div', ...rest }) {
+  const [ref, visible] = useReveal()
+  return (
+    <Tag
+      ref={ref}
+      className={`${rest.className || ''} reveal ${visible ? 'is-visible' : ''}`}
+      style={{ ...rest.style, transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </Tag>
+  )
+}
+
+// --- Count-up on scroll into view ---
+function CountUp({ end, duration = 1600, format = (v) => v.toFixed(0), start = 0 }) {
+  const ref = useRef(null)
+  const [val, setVal] = useState(start)
+  const [triggered, setTriggered] = useState(false)
+  useEffect(() => {
+    if (!ref.current) return
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !triggered) setTriggered(true)
+    }, { threshold: 0.5 })
+    io.observe(ref.current)
+    return () => io.disconnect()
+  }, [triggered])
+  useEffect(() => {
+    if (!triggered) return
+    const t0 = performance.now()
+    let raf
+    const tick = (now) => {
+      const t = Math.min(1, (now - t0) / duration)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setVal(start + (end - start) * eased)
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [triggered, end, duration, start])
+  return <span ref={ref}>{format(val)}</span>
+}
 
 // --- Data ---
 
@@ -136,9 +195,109 @@ const BookIntroBtn = ({ style }) => (
 
 // --- Page ---
 
+const mindsetPillars = [
+  {
+    title: 'Economics-first thinking',
+    body: "I understand your unit economics before I open Premiere. CPA, LTV, AOV, break-even ROAS — these are inputs to the edit, not afterthoughts. If the target CPA is $75 and the current control is running at $110, I know the ad has to solve for the difference.",
+  },
+  {
+    title: 'Hooks engineered, not templated',
+    body: "Hook rate and hold rate are the only metrics that matter in the first three seconds. I don't chase Reels trends — I engineer hooks against the promise. Every winning creative has a testable thesis, not a \"vibe.\"",
+  },
+  {
+    title: 'Iteration cadence built for testing',
+    body: "I ship at ad-cycle speed — 2–3 days per variant. I structure ads in testable batches, not one-offs. I know when the control is about to fatigue and when to angle-shift instead of restart.",
+  },
+  {
+    title: 'Native to Meta + Google workflows',
+    body: "Aspect ratios, placement-native cuts, safe zones — deliverables ship ready for Ad Manager, not as cinema cuts your buyer has to re-slice. I read the Meta Ad Library before I cut. Same language as your media buyer.",
+  },
+]
+
+const vocabRow1 = [
+  'ROAS', 'CPA', 'CPM', 'CTR', 'CVR', 'AOV', 'LTV', 'Break-even ROAS',
+  'Quality Score', 'Hook Rate', 'Hold Rate', 'Thumb-Stop', 'First-Frame Test',
+]
+const vocabRow2 = [
+  'Meta Ad Library', 'Winning Control', 'Ad Set Structure', 'TOF / MOF / BOF',
+  'Retargeting', 'Cold Traffic', 'Frequency Cap', 'Ad Fatigue',
+  'Placement-Native', 'Iteration Cadence', 'Creative Testing', 'Angle Testing',
+]
+
+const workflowSteps = [
+  {
+    label: 'Research',
+    title: 'Research & hook architecture',
+    body: 'Break the offer, the audience, and the funnel. Draft hook variations against the promise, not the format.',
+    icon: <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>,
+    tools: [
+      { name: 'Gemini', bg: 'linear-gradient(135deg, #4285F4, #9B72CB, #EA4335)', markSvg: <svg viewBox="0 0 24 24"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg> },
+      { name: 'Claude', bg: '#D97757', markSvg: <svg viewBox="0 0 24 24"><path d="M12 2 v20 M2 12 h20 M5 5 L19 19 M5 19 L19 5" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none"/></svg> },
+    ],
+  },
+  {
+    label: 'Edit',
+    title: 'Edit & pacing',
+    body: 'Hand-crafted assembly. Story first, cuts second. No filler. No unearned moments.',
+    icon: <svg viewBox="0 0 24 24"><polygon points="12 2 2 8 12 14 22 8 12 2"/><polyline points="2 16 12 22 22 16"/><polyline points="2 12 12 18 22 12"/></svg>,
+    tools: [
+      { name: 'Premiere Pro', bg: '#2A0634', markText: 'Pr', markColor: '#9999FF' },
+      { name: 'After Effects', bg: '#00005B', markText: 'Ae', markColor: '#D291FF' },
+    ],
+  },
+  {
+    label: 'B-Rolls',
+    title: 'Custom B-Rolls & Animation',
+    body: 'Purpose-built B-roll and motion graphics — generated to match the exact story beat and offer tone. Premium animation output at ad-cycle speed.',
+    icon: <svg viewBox="0 0 24 24"><path d="M12 3 L14 9 L20 12 L14 15 L12 21 L10 15 L4 12 L10 9 Z"/><circle cx="19" cy="5" r="1.5"/><circle cx="5" cy="19" r="1.5"/></svg>,
+    tools: [
+      { name: 'Kling / Cdans', bg: '#FF3366', markText: 'K' },
+      { name: 'Veo3', bg: '#4285F4', markSvg: <svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3" fill="white"/></svg> },
+      { name: 'GPT Image', bg: '#10A37F', markText: 'GPT', markFontSize: 8 },
+      { name: 'Nano-banana', bg: '#F4C430', markText: 'N', markColor: '#3A2A00' },
+      { name: 'Replit', bg: '#F26207', markText: 'R' },
+    ],
+  },
+  {
+    label: 'Voice',
+    title: 'Voice & captions',
+    body: 'Cloned VO for iteration speed. Dynamic subtitles that read like a caption editor wrote them — not a robot.',
+    icon: <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>,
+    tools: [
+      { name: 'ElevenLabs', bg: '#000000', markText: '11', markFontSize: 8 },
+      { name: 'Submagic', bg: 'linear-gradient(135deg, #FF6B6B, #FFA500)', markText: 'S' },
+    ],
+  },
+  {
+    label: 'Ship',
+    title: 'Review & ship',
+    body: "Custom-built Premiere Pro plugin runs Gemini across the finished cut — trained on advanced DR knowledge plus my own experience — and returns a detailed second-opinion review before the video ever leaves my machine. Client review and iterations happen in Frame.io. 2–3 days for a 30–90s ad. 2–3 weeks for a 12-min VSL.",
+    icon: <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+    tools: [
+      { name: 'Gemini (custom plugin)', bg: 'linear-gradient(135deg, #4285F4, #9B72CB, #EA4335)', markSvg: <svg viewBox="0 0 24 24"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg> },
+      { name: 'Frame.io', bg: '#00B4E6', markSvg: <svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke="white" fill="none" strokeWidth="2"/><rect x="8" y="8" width="8" height="8" fill="white"/></svg> },
+    ],
+  },
+]
+
+function BrandTool({ tool }) {
+  return (
+    <div className="brand-tool">
+      <div className="brand-mark" style={{ background: tool.bg }}>
+        {tool.markSvg
+          ? tool.markSvg
+          : <span style={{ color: tool.markColor || 'white', fontWeight: 700, fontSize: tool.markFontSize }}>{tool.markText}</span>}
+      </div>
+      {tool.name}
+    </div>
+  )
+}
+
 export default function Home() {
   const [filter, setFilter] = useState('all')
   const [openFaq, setOpenFaq] = useState(null)
+  const [activePillar, setActivePillar] = useState(0)
+  const [activeStep, setActiveStep] = useState(0)
 
   return (
     <>
@@ -224,7 +383,11 @@ export default function Home() {
       <div className="proof">
         <div className="container" style={{ padding: 0 }}>
           <div className="proof-metric">
-            $1.5M/mo ad spend<span className="sep">·</span>300+ projects<span className="sep">·</span>5 years
+            <CountUp end={1.5} format={(v) => `$${v.toFixed(1)}M`} />/mo ad spend
+            <span className="sep">·</span>
+            <CountUp end={300} format={(v) => `${Math.round(v)}+`} /> projects
+            <span className="sep">·</span>
+            <CountUp end={5} format={(v) => `${Math.round(v)}`} /> years
           </div>
           <div className="proof-cards">
             {proofCards.map((c) => (
@@ -332,83 +495,58 @@ export default function Home() {
       </section>
 
       {/* MARKETER MINDSET */}
-      <section className="marketer-mind" id="mindset">
-        <div className="container">
+      <Reveal as="section" className="marketer-mind" style={{}}>
+        <div className="container" id="mindset">
           <div className="section-label">// How I Think</div>
-          <h2 className="section-title">I think like a media buyer.</h2>
+          <h2 className="section-title">
+            I think like a <span className="serif-italic">media buyer</span>.
+          </h2>
           <p className="mindset-lead">
-            Editing for direct response is not decoration. Every cut is a bet on ROAS. Every first frame is a thumb-stop test. If your CPA is running $110 against a $75 target, the ad has to solve for the gap — not just look nice.
+            Editing for direct response is not decoration. Every cut is a bet on ROAS. Every first frame is a thumb-stop test. If your CPA is running <em>$110 against a $75 target</em>, the ad has to solve for the gap — not just look nice.
           </p>
 
-          <div className="mindset-pillars">
-            <div className="pillar">
-              <div className="pillar-num">01</div>
-              <h3>Economics-first thinking</h3>
-              <p>
-                I understand your unit economics before I open Premiere. CPA, LTV, AOV, break-even ROAS — these are inputs to the edit, not afterthoughts. If the target CPA is $75 and the current control is running at $110, I know the ad has to solve for the difference.
-              </p>
+          <div className="mindset-tabs">
+            <div className="mindset-tab-list">
+              {mindsetPillars.map((p, i) => (
+                <button
+                  key={i}
+                  className={`mindset-tab ${activePillar === i ? 'active' : ''}`}
+                  onClick={() => setActivePillar(i)}
+                  onMouseEnter={() => setActivePillar(i)}
+                >
+                  <span className="mindset-tab-num">0{i + 1}</span>
+                  <span className="mindset-tab-title">{p.title}</span>
+                </button>
+              ))}
             </div>
 
-            <div className="pillar">
-              <div className="pillar-num">02</div>
-              <h3>Hooks engineered, not templated</h3>
-              <p>
-                Hook rate and hold rate are the only metrics that matter in the first three seconds. I don't chase Reels trends — I engineer hooks against the promise. Every winning creative has a testable thesis, not a "vibe."
-              </p>
-            </div>
-
-            <div className="pillar">
-              <div className="pillar-num">03</div>
-              <h3>Iteration cadence built for testing</h3>
-              <p>
-                I ship at ad-cycle speed — 2–3 days per variant. I structure ads in testable batches, not one-offs. I know when the control is about to fatigue and when to angle-shift instead of restart.
-              </p>
-            </div>
-
-            <div className="pillar">
-              <div className="pillar-num">04</div>
-              <h3>Native to Meta + Google workflows</h3>
-              <p>
-                Aspect ratios, placement-native cuts, safe zones — deliverables ship ready for Ad Manager, not as cinema cuts your buyer has to re-slice. I read the Meta Ad Library before I cut. Same language as your media buyer.
-              </p>
+            <div className="mindset-tab-panel">
+              <div className="tab-num-huge">0{activePillar + 1}</div>
+              <div className="tab-num-label">Pillar · 0{activePillar + 1} / 04</div>
+              <h3 className="tab-panel-title">{mindsetPillars[activePillar].title}</h3>
+              <p className="tab-panel-body">{mindsetPillars[activePillar].body}</p>
             </div>
           </div>
 
           <div className="vocab-panel">
             <div className="vocab-label">Fluent in</div>
-            <div className="vocab-grid">
-              <span className="vocab-chip">ROAS</span>
-              <span className="vocab-chip">CPA</span>
-              <span className="vocab-chip">CPM</span>
-              <span className="vocab-chip">CTR</span>
-              <span className="vocab-chip">CVR</span>
-              <span className="vocab-chip">AOV</span>
-              <span className="vocab-chip">LTV</span>
-              <span className="vocab-chip">Break-even ROAS</span>
-              <span className="vocab-chip">Quality Score</span>
-              <span className="vocab-sep"></span>
-              <span className="vocab-chip">Hook Rate</span>
-              <span className="vocab-chip">Hold Rate</span>
-              <span className="vocab-chip">Thumb-Stop</span>
-              <span className="vocab-chip">First-Frame Test</span>
-              <span className="vocab-sep"></span>
-              <span className="vocab-chip">Meta Ad Library</span>
-              <span className="vocab-chip">Winning Control</span>
-              <span className="vocab-chip">Ad Set Structure</span>
-              <span className="vocab-chip">TOF / MOF / BOF</span>
-              <span className="vocab-chip">Retargeting</span>
-              <span className="vocab-chip">Cold Traffic</span>
-              <span className="vocab-chip">Frequency Cap</span>
-              <span className="vocab-chip">Ad Fatigue</span>
-              <span className="vocab-chip">Placement-Native</span>
-              <span className="vocab-sep"></span>
-              <span className="vocab-chip">Iteration Cadence</span>
-              <span className="vocab-chip">Creative Testing</span>
-              <span className="vocab-chip">Angle Testing</span>
+            <div className="marquee marquee-left">
+              <div className="marquee-track">
+                {[...vocabRow1, ...vocabRow1].map((v, i) => (
+                  <span key={i} className="vocab-chip">{v}</span>
+                ))}
+              </div>
+            </div>
+            <div className="marquee marquee-right">
+              <div className="marquee-track marquee-track-reverse">
+                {[...vocabRow2, ...vocabRow2].map((v, i) => (
+                  <span key={i} className="vocab-chip">{v}</span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* CASE STUDY */}
       <section className="case-study">
@@ -437,105 +575,49 @@ export default function Home() {
         </div>
       </section>
 
-      {/* AI WORKFLOW */}
-      <section className="workflow" id="workflow">
-        <div className="container">
+      {/* AI WORKFLOW — SCRUBBER */}
+      <Reveal as="section" className="workflow" style={{}}>
+        <div className="container" id="workflow">
           <div className="section-label pipeline-label">
             <span className="pulse-dot"></span>
             // AI PIPELINE · LIVE
           </div>
           <h2 className="section-title">How I build.</h2>
 
-          <div className="ai-pipeline-viz">
-            <span className="pipe-stage"><span className="stage-num">01</span> Research</span>
-            <span className="pipe-arrow">→</span>
-            <span className="pipe-stage"><span className="stage-num">02</span> Edit</span>
-            <span className="pipe-arrow">→</span>
-            <span className="pipe-stage"><span className="stage-num">03</span> B-roll + Animation</span>
-            <span className="pipe-arrow">→</span>
-            <span className="pipe-stage"><span className="stage-num">04</span> Voice + Captions</span>
-            <span className="pipe-arrow">→</span>
-            <span className="pipe-stage"><span className="stage-num">05</span> Review + Ship</span>
-          </div>
-
-          <div className="steps-wrapper">
-            <div className="steps-connector"></div>
-
-            <div className="step">
-              <div className="step-icon">
-                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" /><line x1="21" y1="21" x2="16.5" y2="16.5" /></svg>
+          <div className="scrubber">
+            <div className="scrubber-nav" style={{ '--active-i': activeStep }}>
+              <div className="scrubber-track">
+                <div
+                  className="scrubber-indicator"
+                  style={{ top: `calc(${activeStep} * (100% / ${workflowSteps.length}))` }}
+                />
               </div>
-              <div className="step-num">STEP · 01</div>
-              <div className="step-body">
-                <h3>Research & hook architecture</h3>
-                <p>Break the offer, the audience, and the funnel. Draft hook variations against the promise, not the format.</p>
-                <div className="brand-tools">
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: 'linear-gradient(135deg, #4285F4, #9B72CB, #EA4335)' }}><svg viewBox="0 0 24 24"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" /></svg></div>Gemini</div>
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#D97757' }}><svg viewBox="0 0 24 24"><path d="M12 2 v20 M2 12 h20 M5 5 L19 19 M5 19 L19 5" stroke="white" strokeWidth="2.5" strokeLinecap="round" fill="none" /></svg></div>Claude</div>
-                </div>
-              </div>
+              {workflowSteps.map((s, i) => (
+                <button
+                  key={i}
+                  className={`scrubber-step ${activeStep === i ? 'active' : ''}`}
+                  onClick={() => setActiveStep(i)}
+                  onMouseEnter={() => setActiveStep(i)}
+                >
+                  <span className="scrubber-num">0{i + 1}</span>
+                  <span className="scrubber-label">{s.label}</span>
+                </button>
+              ))}
             </div>
 
-            <div className="step">
-              <div className="step-icon">
-                <svg viewBox="0 0 24 24"><polygon points="12 2 2 8 12 14 22 8 12 2" /><polyline points="2 16 12 22 22 16" /><polyline points="2 12 12 18 22 12" /></svg>
-              </div>
-              <div className="step-num">STEP · 02</div>
-              <div className="step-body">
-                <h3>Edit & pacing</h3>
-                <p>Hand-crafted assembly. Story first, cuts second. No filler. No unearned moments.</p>
-                <div className="brand-tools">
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#2A0634' }}><span style={{ color: '#9999FF', fontWeight: 700 }}>Pr</span></div>Premiere Pro</div>
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#00005B' }}><span style={{ color: '#D291FF', fontWeight: 700 }}>Ae</span></div>After Effects</div>
+            <div className="scrubber-panel" key={activeStep}>
+              <div className="scrubber-panel-header">
+                <div className="scrubber-panel-icon">{workflowSteps[activeStep].icon}</div>
+                <div>
+                  <div className="scrubber-panel-num">STEP · 0{activeStep + 1} / 0{workflowSteps.length}</div>
+                  <h3 className="scrubber-panel-title">{workflowSteps[activeStep].title}</h3>
                 </div>
               </div>
-            </div>
-
-            <div className="step">
-              <div className="step-icon">
-                <svg viewBox="0 0 24 24"><path d="M12 3 L14 9 L20 12 L14 15 L12 21 L10 15 L4 12 L10 9 Z" /><circle cx="19" cy="5" r="1.5" /><circle cx="5" cy="19" r="1.5" /></svg>
-              </div>
-              <div className="step-num">STEP · 03</div>
-              <div className="step-body">
-                <h3>Custom B-Rolls & Animation</h3>
-                <p>Purpose-built B-roll and motion graphics — generated to match the exact story beat and offer tone. Premium animation output at ad-cycle speed.</p>
-                <div className="brand-tools">
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#FF3366' }}><span style={{ color: 'white', fontWeight: 700 }}>K</span></div>Kling / Cdans</div>
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#4285F4' }}><svg viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3" fill="white" /></svg></div>Veo3</div>
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#10A37F' }}><span style={{ color: 'white', fontWeight: 700, fontSize: 8 }}>GPT</span></div>GPT Image</div>
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#F4C430' }}><span style={{ color: '#3A2A00', fontWeight: 700 }}>N</span></div>Nano-banana</div>
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#F26207' }}><span style={{ color: 'white', fontWeight: 700 }}>R</span></div>Replit</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="step">
-              <div className="step-icon">
-                <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3" /><path d="M5 10v2a7 7 0 0 0 14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /><line x1="8" y1="22" x2="16" y2="22" /></svg>
-              </div>
-              <div className="step-num">STEP · 04</div>
-              <div className="step-body">
-                <h3>Voice & captions</h3>
-                <p>Cloned VO for iteration speed. Dynamic subtitles that read like a caption editor wrote them — not a robot.</p>
-                <div className="brand-tools">
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#000000' }}><span style={{ color: 'white', fontWeight: 700, fontSize: 8 }}>11</span></div>ElevenLabs</div>
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: 'linear-gradient(135deg, #FF6B6B, #FFA500)' }}><span style={{ color: 'white', fontWeight: 700 }}>S</span></div>Submagic</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="step">
-              <div className="step-icon">
-                <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-              </div>
-              <div className="step-num">STEP · 05</div>
-              <div className="step-body">
-                <h3>Review & ship</h3>
-                <p>Custom-built Premiere Pro plugin runs Gemini across the finished cut — trained on advanced DR knowledge plus my own experience — and returns a detailed second-opinion review before the video ever leaves my machine. Client review and iterations happen in Frame.io. 2–3 days for a 30–90s ad. 2–3 weeks for a 12-min VSL.</p>
-                <div className="brand-tools">
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: 'linear-gradient(135deg, #4285F4, #9B72CB, #EA4335)' }}><svg viewBox="0 0 24 24"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z" /></svg></div>Gemini (custom plugin)</div>
-                  <div className="brand-tool"><div className="brand-mark" style={{ background: '#00B4E6' }}><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" stroke="white" fill="none" strokeWidth="2" /><rect x="8" y="8" width="8" height="8" fill="white" /></svg></div>Frame.io</div>
-                </div>
+              <p className="scrubber-panel-body">{workflowSteps[activeStep].body}</p>
+              <div className="brand-tools">
+                {workflowSteps[activeStep].tools.map((t, i) => (
+                  <BrandTool key={i} tool={t} />
+                ))}
               </div>
             </div>
           </div>
@@ -547,7 +629,7 @@ export default function Home() {
             <BookIntroBtn />
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* ABOUT */}
       <section id="about">
