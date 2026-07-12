@@ -18,16 +18,139 @@ function useReveal() {
   return [ref, visible]
 }
 
-function Reveal({ children, delay = 0, as: Tag = 'div', ...rest }) {
+function Reveal({ children, delay = 0, as: Tag = 'div', className = '', style = {}, ...rest }) {
   const [ref, visible] = useReveal()
   return (
     <Tag
       ref={ref}
-      className={`${rest.className || ''} reveal ${visible ? 'is-visible' : ''}`}
-      style={{ ...rest.style, transitionDelay: `${delay}ms` }}
+      className={`${className} reveal ${visible ? 'is-visible' : ''}`}
+      style={{ ...style, transitionDelay: `${delay}ms` }}
+      {...rest}
     >
       {children}
     </Tag>
+  )
+}
+
+// --- Timeline Navigation ---
+const timelineSections = [
+  { id: 'hero', label: 'HERO' },
+  { id: 'reel', label: 'REEL' },
+  { id: 'proof', label: 'PROOF' },
+  { id: 'work', label: 'WORK' },
+  { id: 'mindset', label: 'THINK' },
+  { id: 'case', label: 'CASE' },
+  { id: 'workflow', label: 'STACK' },
+  { id: 'about', label: 'BIO' },
+  { id: 'contact', label: 'OFFER' },
+  { id: 'praise', label: 'PRAISE' },
+  { id: 'faq', label: 'FAQ' },
+  { id: 'end', label: 'TALK' },
+]
+
+function formatTimecode(progress) {
+  const totalSeconds = progress * 120
+  const mins = Math.floor(totalSeconds / 60)
+  const secs = Math.floor(totalSeconds % 60)
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+}
+
+function TimelineNav() {
+  const [progress, setProgress] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const trackRef = useRef(null)
+  const draggingRef = useRef(false)
+
+  useEffect(() => {
+    let raf = null
+    const handleScroll = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = null
+        const docH = document.documentElement.scrollHeight - window.innerHeight
+        const p = docH > 0 ? window.scrollY / docH : 0
+        setProgress(Math.max(0, Math.min(1, p)))
+
+        const y = window.scrollY + window.innerHeight * 0.35
+        let idx = 0
+        for (let i = 0; i < timelineSections.length; i++) {
+          const el = document.getElementById(timelineSections[i].id)
+          if (el && el.getBoundingClientRect().top + window.scrollY <= y) idx = i
+        }
+        setActiveIndex(idx)
+      })
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
+  const jumpTo = (index) => {
+    const el = document.getElementById(timelineSections[index].id)
+    if (!el) return
+    const y = el.getBoundingClientRect().top + window.scrollY - 130
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }
+
+  const scrubTo = (clientX) => {
+    if (!trackRef.current) return
+    const rect = trackRef.current.getBoundingClientRect()
+    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+    const docH = document.documentElement.scrollHeight - window.innerHeight
+    window.scrollTo({ top: pct * docH, behavior: 'auto' })
+  }
+
+  const startDrag = (e) => {
+    if (e.target.closest('button.timeline-clip')) return
+    e.preventDefault()
+    draggingRef.current = true
+    setDragging(true)
+    scrubTo(e.clientX)
+
+    const onMove = (ev) => {
+      if (!draggingRef.current) return
+      scrubTo(ev.clientX)
+    }
+    const onUp = () => {
+      draggingRef.current = false
+      setDragging(false)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+  }
+
+  return (
+    <div className={`timeline-nav ${dragging ? 'is-dragging' : ''}`}>
+      <div className="timeline-track" ref={trackRef} onPointerDown={startDrag}>
+        {timelineSections.map((s, i) => (
+          <button
+            key={s.id}
+            className={`timeline-clip ${activeIndex === i ? 'active' : ''}`}
+            onClick={(e) => { e.stopPropagation(); jumpTo(i) }}
+            type="button"
+          >
+            <span className="clip-num">{String(i + 1).padStart(2, '0')}</span>
+            <span className="clip-name">{s.label}</span>
+          </button>
+        ))}
+        <div
+          className="timeline-playhead"
+          style={{ left: `${progress * 100}%` }}
+        />
+      </div>
+      <div className="timeline-timecode">
+        <span className="tc-label">SHOT</span>
+        <span className="tc-num">{String(activeIndex + 1).padStart(2, '0')}/{String(timelineSections.length).padStart(2, '0')}</span>
+        <span className="tc-sep">·</span>
+        <span className="tc-time">{formatTimecode(progress)}</span>
+      </div>
+    </div>
   )
 }
 
@@ -301,6 +424,8 @@ export default function Home() {
 
   return (
     <>
+      <TimelineNav />
+
       {/* NAV */}
       <nav>
         <div className="wordmark">Adeel</div>
@@ -316,7 +441,7 @@ export default function Home() {
       </nav>
 
       {/* HERO */}
-      <section className="hero">
+      <section className="hero" id="hero">
         <video
           className="hero-video"
           autoPlay
@@ -380,7 +505,7 @@ export default function Home() {
       </section>
 
       {/* PROOF */}
-      <div className="proof">
+      <div className="proof" id="proof">
         <div className="container" style={{ padding: 0 }}>
           <div className="proof-metric">
             <CountUp end={1.5} format={(v) => `$${v.toFixed(1)}M`} />/mo ad spend
@@ -549,7 +674,7 @@ export default function Home() {
       </Reveal>
 
       {/* CASE STUDY */}
-      <section className="case-study">
+      <section className="case-study" id="case">
         <div className="container">
           <div className="section-label">// Case Study</div>
           <h2 className="section-title">Become Your Own Bank.</h2>
@@ -673,7 +798,7 @@ export default function Home() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section>
+      <section id="praise">
         <div className="container">
           <div className="section-label">// What people say</div>
           <h2 className="section-title">The receipts.</h2>
@@ -710,7 +835,7 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section>
+      <section id="faq">
         <div className="container">
           <div className="section-label">// FAQ</div>
           <h2 className="section-title">The usual questions.</h2>
@@ -731,7 +856,7 @@ export default function Home() {
       </section>
 
       {/* FINAL CTA */}
-      <div className="final-cta">
+      <div className="final-cta" id="end">
         <h2>
           If you're running high-ticket DR and need an editor who can keep up, <em>let's talk.</em>
         </h2>
