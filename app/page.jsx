@@ -187,7 +187,12 @@ function CountUp({ end, duration = 1600, format = (v) => v.toFixed(0), start = 0
 
 // --- Data ---
 
-const verticals = ['Digital Assets', 'Trading', 'AI Automations', 'EdTech', 'FinTech', 'Wealth']
+const aboutMilestones = [
+  { year: '2018', title: 'The debate kid', detail: 'Where I learned that a good argument has three acts. Applied it to video ever since.' },
+  { year: '2021', title: 'Editing Machine', detail: 'UK YouTube post-production studio. Senior editor on documentaries and creator content that helped the studio land and retain premium creators.' },
+  { year: '2023', title: 'Decentralized Masters', detail: 'In-house at a $1.5M/mo direct-response education company. Lead editor on VSLs, ads, and full course revamps. Cut the "Become Your Own Bank" VSL — still a core active funnel.' },
+  { year: '2026', title: 'Available', detail: 'Working with a short list of premium brands running high-ticket offers. One retainer client at a time.' },
+]
 
 const proofCards = [
   {
@@ -272,7 +277,7 @@ const filters = [
 const faqItems = [
   {
     q: 'What niches do you work in?',
-    a: 'Direct Response for high-ticket offers — digital assets, trading, AI automation, EdTech, FinTech, wealth. Nothing outside high-ticket DR.',
+    a: 'Direct Response for high-ticket offers. If the offer sells for $1K+ and runs a real DR funnel, we can talk. No low-ticket DTC e-commerce.',
   },
   {
     q: "What's your turnaround?",
@@ -292,7 +297,7 @@ const faqItems = [
   },
   {
     q: 'Do you offer one-off projects?',
-    a: 'No. Retainer only — $3,500/mo minimum. Consistency beats one-off polish for DR work.',
+    a: 'No. Retainer only — $4,000/mo minimum. Consistency beats one-off polish for DR work.',
   },
   {
     q: 'Where are you based?',
@@ -423,6 +428,10 @@ export default function Home() {
   const [openFaq, setOpenFaq] = useState(null)
   const [activePillar, setActivePillar] = useState(0)
   const [activeStep, setActiveStep] = useState(0)
+  const [openProofCard, setOpenProofCard] = useState(null)
+  const [caseOpen, setCaseOpen] = useState(false)
+  const [activeMilestone, setActiveMilestone] = useState(3)
+  const [scopeOpen, setScopeOpen] = useState(false)
 
   return (
     <>
@@ -451,13 +460,8 @@ export default function Home() {
             <span className="accent">High-Ticket Offers.</span>
           </h1>
           <p className="sub">
-            I cut ads, VSLs, and product videos that move serious money — for the people running premium offers in digital assets, trading, AI automation, EdTech, FinTech, and wealth.
+            Ads. VSLs. Product videos. Built to move serious money.
           </p>
-          <div className="verticals">
-            {verticals.map((v) => (
-              <span key={v} className="vertical-chip">{v}</span>
-            ))}
-          </div>
           <div className="cta-row">
             <BookIntroBtn />
             <a href="#work" className="btn-secondary">See the work ↓</a>
@@ -503,14 +507,21 @@ export default function Home() {
             <CountUp end={5} format={(v) => `${Math.round(v)}`} /> years
           </div>
           <div className="proof-cards">
-            {proofCards.map((c) => (
-              <div key={c.name} className="proof-card">
+            {proofCards.map((c, i) => (
+              <div
+                key={c.name}
+                className={`proof-card ${openProofCard === i ? 'is-open' : ''}`}
+                onClick={() => setOpenProofCard(openProofCard === i ? null : i)}
+              >
                 <div className="proof-icon">{c.icon}</div>
                 <div className="proof-name">{c.name}</div>
                 <div className="proof-role">{c.role}</div>
-                <p>{c.body}</p>
-                <div className="proof-contact">
-                  <span className="placeholder-tag">{c.contact}</span>
+                <span className="proof-hint">Tap / hover to expand +</span>
+                <div className="proof-details">
+                  <p>{c.body}</p>
+                  <div className="proof-contact">
+                    <span className="placeholder-tag">{c.contact}</span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -666,25 +677,38 @@ export default function Home() {
         <div className="container">
           <div className="section-label">// Case Study</div>
           <h2 className="section-title">Become Your Own Bank.</h2>
-          <p className="case-sub">A VSL that's still a core active funnel, 12 months in.</p>
-          <div className="case-grid">
-            <div className="case-block">
-              <h3>Challenge</h3>
-              <p>Explain the concept of a self-custodied wallet to a cold audience — in a way that builds trust for a high-ticket education offer.</p>
-            </div>
-            <div className="case-block">
-              <h3>Approach</h3>
-              <p>Custom Coinbase wallet visualization, internal footage, hand-built animations for abstract concepts. Storytelling-first pacing.</p>
-            </div>
-            <div className="case-block">
-              <h3>Result</h3>
-              <p>Still running as a core funnel 12 months after launch. Praised internally as one of DM's strongest VSLs to date.</p>
-            </div>
-          </div>
+
           <div className="pull-quote">
             <div className="q">This is a masterclass. Incredible job.</div>
             <div className="attr">— Tan, CEO · Decentralized Masters</div>
           </div>
+
+          <div className="case-stats">
+            <div className="case-stat"><span className="stat-num">12</span><span>months live and still running</span></div>
+            <div className="case-stat"><span className="stat-num">Core</span><span>active funnel at DM</span></div>
+            <div className="case-stat"><span className="stat-num">Cold</span><span>audience → high-ticket conversion</span></div>
+          </div>
+
+          <button className="reveal-toggle" onClick={() => setCaseOpen(!caseOpen)}>
+            {caseOpen ? 'Hide the breakdown ↑' : 'See how it was cut ↓'}
+          </button>
+
+          {caseOpen && (
+            <div className="case-grid reveal-body">
+              <div className="case-block">
+                <h3>Challenge</h3>
+                <p>Explain the concept of a self-custodied wallet to a cold audience — in a way that builds trust for a high-ticket education offer.</p>
+              </div>
+              <div className="case-block">
+                <h3>Approach</h3>
+                <p>Custom Coinbase wallet visualization, internal footage, hand-built animations for abstract concepts. Storytelling-first pacing.</p>
+              </div>
+              <div className="case-block">
+                <h3>Result</h3>
+                <p>Still running as a core funnel 12 months after launch. Praised internally as one of DM's strongest VSLs to date.</p>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -744,21 +768,29 @@ export default function Home() {
         </div>
       </Reveal>
 
-      {/* ABOUT */}
+      {/* ABOUT — CAREER TIMELINE */}
       <section id="about">
         <div className="container">
-          <div className="section-label">// About</div>
-          <div className="about-grid">
-            <div className="about-photo">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" /><path d="M4 22 c0-4 4-7 8-7 s8 3 8 7" /></svg>
-              <span>Photo placeholder</span>
-            </div>
-            <div className="about-text">
-              <p>I'm Adeel — a Direct Response video editor based in Islamabad, working with high-ticket offers globally.</p>
-              <p>Started as a debate kid. Learned that a good argument has three acts. Applied it to video. Spent two years as a Senior Editor at Editing Machine in the UK — cutting documentaries and creator content that helped the studio land and retain premium creators.</p>
-              <p>For the last 2.5 years I've been in-house at Decentralized Masters — a $1.5M/mo direct-response education company — cutting the VSLs and ads that drive their funnel. I cut the "Become Your Own Bank" VSL. It's still one of their core active funnels.</p>
-              <p>Now I work with a short list of high-ticket brands in digital assets, trading, AI automation, EdTech, FinTech, and wealth. One retainer at a time.</p>
-            </div>
+          <div className="section-label">// Bio</div>
+          <h2 className="section-title">The story.</h2>
+
+          <div className="career-timeline">
+            {aboutMilestones.map((m, i) => (
+              <button
+                key={i}
+                className={`career-milestone ${activeMilestone === i ? 'active' : ''}`}
+                onClick={() => setActiveMilestone(i)}
+                onMouseEnter={() => setActiveMilestone(i)}
+                type="button"
+              >
+                <div className="milestone-year">{m.year}</div>
+                <div className="milestone-title">{m.title}</div>
+              </button>
+            ))}
+          </div>
+
+          <div className="milestone-detail" key={activeMilestone}>
+            <p>{aboutMilestones[activeMilestone].detail}</p>
           </div>
         </div>
       </section>
@@ -769,18 +801,29 @@ export default function Home() {
           <div className="section-label">// Services</div>
           <h2 className="section-title">One retainer client at a time.</h2>
           <div className="service-card">
-            <div className="service-label">Monthly Retainer</div>
-            <div className="service-price">From $3,500<small>&nbsp;/month</small></div>
-            <ul className="service-scope">
-              <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Up to N ad edits per month (30–90s each)</li>
-              <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>OR one long-form VSL (up to 12 min) + supporting cuts</li>
-              <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Full AI-augmented workflow (captions, VO, B-roll, animation)</li>
-              <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Custom-plugin second-opinion review before delivery</li>
-              <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Dedicated Slack/Discord channel · 24h response</li>
-              <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Frame.io for client review + iterations</li>
-              <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Testimonial + case-study rights after 60 days</li>
-            </ul>
-            <BookIntroBtn style={{ marginTop: 8 }} />
+            <div className="service-label">Monthly Retainer · One client at a time</div>
+            <div className="service-price">From $4,000<small>&nbsp;/month</small></div>
+            <p className="service-summary">
+              Ads, VSLs, product videos. AI-native workflow. Second-opinion review before delivery. One retainer, one focus.
+            </p>
+
+            <button className="reveal-toggle" onClick={() => setScopeOpen(!scopeOpen)}>
+              {scopeOpen ? "Hide scope ↑" : "See what's included ↓"}
+            </button>
+
+            {scopeOpen && (
+              <ul className="service-scope reveal-body">
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Up to N ad edits per month (30–90s each)</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>OR one long-form VSL (up to 12 min) + supporting cuts</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Full AI-augmented workflow (captions, VO, B-roll, animation)</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Custom-plugin second-opinion review before delivery</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Dedicated Slack/Discord channel · 24h response</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Frame.io for client review + iterations</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Testimonial + case-study rights after 60 days</li>
+              </ul>
+            )}
+
+            <BookIntroBtn style={{ marginTop: 20 }} />
           </div>
         </div>
       </section>
