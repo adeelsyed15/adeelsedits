@@ -20,24 +20,50 @@
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-section, .proof, .final-cta { scroll-margin-top: 130px; }
+section, .proof, .final-cta { scroll-margin-top: 110px; }
 
-/* TIMELINE NAV — the signature */
+/* TIMELINE NAV — the signature (floating pill, now the only nav) */
 .timeline-nav {
   position: fixed;
-  top: 60px;
-  left: 0; right: 0;
-  z-index: 99;
+  top: 16px;
+  left: 20px; right: 20px;
+  z-index: 100;
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 8px 40px;
-  background: linear-gradient(to bottom, rgba(23, 19, 16, 0.90), rgba(23, 19, 16, 0.55));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--border);
+  gap: 16px;
+  padding: 8px 12px 8px 20px;
+  background: rgba(23, 19, 16, 0.82);
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 2px 0 rgba(255, 255, 255, 0.02) inset;
   user-select: none;
 }
+.tl-wordmark {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  flex-shrink: 0;
+  padding: 0 4px;
+  line-height: 1;
+}
+.tl-wordmark::after { content: '.'; color: var(--amber); margin-left: 1px; }
+.tl-cta {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border: 1px solid var(--amber);
+  border-radius: 100px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--amber);
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+.tl-cta:hover { background: var(--amber); color: var(--bg); }
 .timeline-nav.is-dragging { cursor: grabbing; }
 .timeline-nav.is-dragging * { cursor: grabbing !important; }
 .timeline-track {
@@ -143,20 +169,24 @@ section, .proof, .final-cta { scroll-margin-top: 130px; }
 .timeline-timecode .tc-time { color: var(--text); font-variant-numeric: tabular-nums; }
 .timeline-timecode .tc-sep { color: var(--text-dim); opacity: 0.5; }
 
-@media (max-width: 900px) {
-  .timeline-nav { padding: 6px 16px; gap: 12px; top: 56px; }
-  .timeline-timecode { min-width: 90px; font-size: 9px; gap: 6px; }
+@media (max-width: 1000px) {
+  .timeline-nav { top: 12px; left: 12px; right: 12px; gap: 10px; padding: 6px 6px 6px 14px; }
+  .tl-wordmark { font-size: 18px; }
+  .tl-cta { font-size: 9px; padding: 6px 10px; letter-spacing: 0.1em; }
+  .timeline-timecode { min-width: 80px; font-size: 9px; gap: 5px; }
   .timeline-timecode .tc-label { display: none; }
   .clip-num { display: none; }
-  .clip-name { font-size: 8.5px; letter-spacing: 0.15em; }
+  .clip-name { font-size: 8.5px; letter-spacing: 0.14em; }
 }
-@media (max-width: 600px) {
-  .timeline-nav { padding: 5px 10px; gap: 8px; top: 50px; }
+@media (max-width: 720px) {
+  .timeline-nav { top: 10px; left: 10px; right: 10px; gap: 8px; padding: 5px 6px 5px 10px; }
+  .tl-wordmark { font-size: 16px; }
+  .tl-cta { font-size: 8.5px; padding: 5px 8px; }
   .timeline-track { height: 34px; border-radius: 4px; }
-  .timeline-timecode { min-width: 70px; font-size: 8.5px; }
+  .timeline-timecode { min-width: 62px; font-size: 8px; gap: 4px; }
   .timeline-timecode .tc-sep { display: none; }
-  .clip-name { font-size: 7.5px; letter-spacing: 0.1em; }
-  .timeline-clip { padding: 0 3px; }
+  .clip-name { font-size: 7.5px; letter-spacing: 0.08em; }
+  .timeline-clip { padding: 0 2px; gap: 2px; }
 }
 html, body {
   background: var(--bg);
@@ -224,7 +254,7 @@ nav {
 .hero {
   min-height: 100vh;
   display: flex; align-items: center;
-  padding: 160px 40px 80px;
+  padding: 130px 40px 80px;
   position: relative; overflow: hidden;
   background:
     radial-gradient(ellipse 80% 60% at 78% 50%, rgba(232, 176, 75, 0.14) 0%, transparent 55%),
@@ -1272,7 +1302,7 @@ footer .foot-links a:hover { color: var(--amber); }
   .nav-links { gap: 14px; font-size: 10px; }
   .nav-right { gap: 14px; }
   .nav-cta { padding: 6px 10px; font-size: 9px; }
-  .hero { padding: 140px 20px 60px; }
+  .hero { padding: 120px 20px 60px; }
   .container { padding: 0 20px; }
   section { padding: 80px 20px; }
   .proof { padding: 60px 20px 70px; }

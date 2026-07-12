@@ -126,7 +126,8 @@ function TimelineNav() {
   }
 
   return (
-    <div className={`timeline-nav ${dragging ? 'is-dragging' : ''}`}>
+    <nav className={`timeline-nav ${dragging ? 'is-dragging' : ''}`} aria-label="Site timeline">
+      <a href="#hero" className="tl-wordmark" onClick={(e) => { e.preventDefault(); jumpTo(0) }}>Adeel</a>
       <div className="timeline-track" ref={trackRef} onPointerDown={startDrag}>
         {timelineSections.map((s, i) => (
           <button
@@ -150,7 +151,8 @@ function TimelineNav() {
         <span className="tc-sep">·</span>
         <span className="tc-time">{formatTimecode(progress)}</span>
       </div>
-    </div>
+      <a href={CAL_URL} target="_blank" rel="noopener noreferrer" className="tl-cta">Book a Call →</a>
+    </nav>
   )
 }
 
@@ -260,11 +262,11 @@ const workTiles = [
 ]
 
 const filters = [
-  { key: 'all', label: 'All' },
-  { key: 'vsl', label: 'VSLs' },
   { key: 'ad', label: 'Ads' },
-  { key: 'course', label: 'Course' },
+  { key: 'vsl', label: 'VSLs' },
   { key: 'documentary', label: 'Documentaries' },
+  { key: 'course', label: 'Course' },
+  { key: 'all', label: 'All' },
 ]
 
 const faqItems = [
@@ -417,7 +419,7 @@ function BrandTool({ tool }) {
 }
 
 export default function Home() {
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter] = useState('ad')
   const [openFaq, setOpenFaq] = useState(null)
   const [activePillar, setActivePillar] = useState(0)
   const [activeStep, setActiveStep] = useState(0)
@@ -425,20 +427,6 @@ export default function Home() {
   return (
     <>
       <TimelineNav />
-
-      {/* NAV */}
-      <nav>
-        <div className="wordmark">Adeel</div>
-        <div className="nav-right">
-          <div className="nav-links">
-            <a href="#reel">Reel</a>
-            <a href="#work">Work</a>
-            <a href="#workflow">Workflow</a>
-            <a href="#about">About</a>
-          </div>
-          <a href={CAL_URL} target="_blank" rel="noopener noreferrer" className="nav-cta">Book a Call →</a>
-        </div>
-      </nav>
 
       {/* HERO */}
       <section className="hero" id="hero">
