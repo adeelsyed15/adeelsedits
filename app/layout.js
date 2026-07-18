@@ -1,20 +1,16 @@
-import { Instrument_Serif, Inter, JetBrains_Mono } from 'next/font/google'
+import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 
-const serif = Instrument_Serif({
-  weight: '400',
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
-  variable: '--font-serif-loaded',
-  display: 'swap',
-})
-
+// Single sans stack — Inter across the board. No wedding-y serifs.
 const sans = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   variable: '--font-sans-loaded',
   display: 'swap',
 })
+
+// Alias for backwards compatibility — --font-serif still exists but resolves to Inter
+const serif = { variable: '--font-serif-loaded-noop' }
 
 const mono = JetBrains_Mono({
   subsets: ['latin'],
@@ -48,7 +44,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${serif.variable} ${sans.variable} ${mono.variable}`}
+      className={`${sans.variable} ${mono.variable}`}
     >
       <body>{children}</body>
     </html>

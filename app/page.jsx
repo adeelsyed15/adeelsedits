@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 
-// --- Scroll-triggered reveal hook ---
+// --- Scroll-triggered reveal hook (re-fires every entry into view) ---
 function useReveal() {
   const ref = useRef(null)
   const [visible, setVisible] = useState(false)
@@ -9,8 +9,8 @@ function useReveal() {
     if (!ref.current) return
     const el = ref.current
     const io = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect() } },
-      { threshold: 0.12, rootMargin: '-40px 0px' }
+      ([entry]) => setVisible(entry.isIntersecting),
+      { threshold: 0.12, rootMargin: '-80px 0px -20% 0px' }
     )
     io.observe(el)
     return () => io.disconnect()
@@ -29,6 +29,120 @@ function Reveal({ children, delay = 0, as: Tag = 'div', className = '', style = 
     >
       {children}
     </Tag>
+  )
+}
+
+// --- Custom Editorial Cursor ---
+function CustomCursor() {
+  const cursorRef = useRef(null)
+  const [state, setState] = useState('default')
+  const [pressed, setPressed] = useState(false)
+  const videoPlayingRef = useRef(false)
+
+  useEffect(() => {
+    document.body.classList.add('has-custom-cursor')
+
+    // Track reel video play state — also flip cursor icon immediately when video toggles
+    const videos = Array.from(document.querySelectorAll('.reel-video'))
+    const onPlay = () => {
+      videoPlayingRef.current = true
+      setState((prev) => (prev === 'video-play' || prev === 'video-pause') ? 'video-pause' : prev)
+    }
+    const onPause = () => {
+      videoPlayingRef.current = false
+      setState((prev) => (prev === 'video-play' || prev === 'video-pause') ? 'video-play' : prev)
+    }
+    videos.forEach((v) => {
+      if (!v.paused) videoPlayingRef.current = true
+      v.addEventListener('play', onPlay)
+      v.addEventListener('pause', onPause)
+    })
+
+    let raf = null
+    let mx = 0, my = 0
+    let cx = 0, cy = 0
+    let initialized = false
+
+    const handleMove = (e) => {
+      mx = e.clientX
+      my = e.clientY
+      if (!initialized) { cx = mx; cy = my; initialized = true }
+
+      const t = e.target
+      let s = 'default'
+
+      // Video first — highest priority when inside the reel frame
+      const reelFrame = t.closest('.reel-frame')
+      if (reelFrame) {
+        const video = reelFrame.querySelector('video')
+        if (video) {
+          const rect = video.getBoundingClientRect()
+          // Bottom ~46px = native controls strip
+          const controlsTop = rect.bottom - 46
+          if (e.clientY > controlsTop) {
+            s = 'video-controls'
+          } else {
+            s = videoPlayingRef.current ? 'video-pause' : 'video-play'
+          }
+        }
+      }
+      else if (t.closest('.btn-primary, .tl-cta, .nav-cta')) s = 'cta'
+      else if (t.closest('h1, h2.section-title, .section-title')) s = 'razor'
+      else if (t.closest('button, a, .work-tile, .proof-card, .career-milestone, .mindset-tab, .scrubber-step, .faq-item, .chip, .timeline-clip')) s = 'interactive'
+      else if (t.closest('input, textarea, [contenteditable]')) s = 'text'
+      setState((prev) => (prev === s ? prev : s))
+    }
+    const handleDown = () => setPressed(true)
+    const handleUp = () => setPressed(false)
+    const handleLeave = () => { if (cursorRef.current) cursorRef.current.style.opacity = '0' }
+    const handleEnter = () => { if (cursorRef.current) cursorRef.current.style.opacity = '1' }
+
+    const animate = () => {
+      cx += (mx - cx) * 0.22
+      cy += (my - cy) * 0.22
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%)`
+      }
+      raf = requestAnimationFrame(animate)
+    }
+
+    window.addEventListener('mousemove', handleMove, { passive: true })
+    window.addEventListener('mousedown', handleDown)
+    window.addEventListener('mouseup', handleUp)
+    document.addEventListener('mouseleave', handleLeave)
+    document.addEventListener('mouseenter', handleEnter)
+    raf = requestAnimationFrame(animate)
+
+    return () => {
+      document.body.classList.remove('has-custom-cursor')
+      videos.forEach((v) => {
+        v.removeEventListener('play', onPlay)
+        v.removeEventListener('pause', onPause)
+      })
+      window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('mousedown', handleDown)
+      window.removeEventListener('mouseup', handleUp)
+      document.removeEventListener('mouseleave', handleLeave)
+      document.removeEventListener('mouseenter', handleEnter)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }, [])
+
+  // Sync body class for showing native cursor when over video controls
+  useEffect(() => {
+    if (state === 'video-controls') {
+      document.body.classList.add('cursor-mode-native')
+    } else {
+      document.body.classList.remove('cursor-mode-native')
+    }
+    return () => document.body.classList.remove('cursor-mode-native')
+  }, [state])
+
+  return (
+    <div ref={cursorRef} className={`custom-cursor cursor-${state} ${pressed ? 'is-pressed' : ''}`}>
+      <span className="cursor-dot" />
+      <span className="cursor-icon" />
+    </div>
   )
 }
 
@@ -187,18 +301,42 @@ function CountUp({ end, duration = 1600, format = (v) => v.toFixed(0), start = 0
 
 // --- Data ---
 
+// To swap a placeholder for a real image or video:
+//   Drop the file into `website/public/story/<year>.jpg` (or `.mp4`)
+//   Set `media: { type: 'image', src: '/story/2018.jpg' }` on that milestone below
+//   Delete the `mediaLabel` line (only used when there is no real media yet)
 const aboutMilestones = [
-  { year: '2018', title: 'The debate kid', detail: 'Where I learned that a good argument has three acts. Applied it to video ever since.' },
-  { year: '2021', title: 'Editing Machine', detail: 'UK YouTube post-production studio. Senior editor on documentaries and creator content that helped the studio land and retain premium creators.' },
-  { year: '2023', title: 'Decentralized Masters', detail: 'In-house at a $1.5M/mo direct-response education company. Lead editor on VSLs, ads, and full course revamps. Cut the "Become Your Own Bank" VSL — still a core active funnel.' },
-  { year: '2026', title: 'Available', detail: 'Working with a short list of premium brands running high-ticket offers. One retainer client at a time.' },
+  {
+    year: '2018',
+    title: 'First frames',
+    detail: 'I was in the third year of my software engineering degree. Around that time I got hooked on big YouTubers like MKBHD and Peter McKinnon, plus a handful of local content creators. I borrowed a gorilla pod, filmed my own vlogs on a phone, and won a department vlogging competition against a few actual camera ops. That got me pulled into a national short-film competition at LUMS. I wrote the story, acted in it, directed it, and cut it. It won. That was the moment I knew video was the actual thing, not a side project.',
+    mediaLabel: 'Early vlogging footage',
+  },
+  {
+    year: '2021',
+    title: 'Editing Machine',
+    detail: 'I graduated. Tried the software engineering job track for a bit and then picked the edit bay instead. Joined Editing Machine, a UK YouTube post-production studio, as a senior editor. Cut documentaries and creator content that helped the studio sign a few high-paying creators and keep them longer than usual.',
+    mediaLabel: 'Editing Machine · London',
+  },
+  {
+    year: '2023',
+    title: 'Decentralized Masters',
+    detail: 'In-house at a $1.5M/mo direct-response education company. Lead editor on the VSLs, ads, and full course revamps. I cut the "Become Your Own Bank" VSL, which is still one of their core active funnels.',
+    mediaLabel: 'DM in-house workspace',
+  },
+  {
+    year: '2026',
+    title: 'Available',
+    detail: 'Working with a short list of brands running high-ticket offers. One retainer client at a time.',
+    mediaLabel: 'Current setup',
+  },
 ]
 
 const proofCards = [
   {
     name: 'Decentralized Masters',
     role: 'In-house · 2023 → Present',
-    body: '$1.5M/mo direct-response education company. Lead editor on VSLs, ads, and course revamps. 2nd editor hired; now part of an 8-person team.',
+    body: '$1.5M/mo direct-response education company. I was the second editor they hired. Today I lead edits on their VSLs, ads, and course launches from an 8-person video team.',
     contact: '[Logo placeholder — swap later]',
     icon: (
       <svg viewBox="0 0 24 24">
@@ -211,7 +349,7 @@ const proofCards = [
   {
     name: 'Editing Machine',
     role: 'Senior Editor · 2021 → 2023',
-    body: 'UK YouTube post-production studio. Senior editor on documentaries and creator content. Work helped close multiple high-paying creators and drive retention + revenue growth.',
+    body: 'UK YouTube post-production studio. Senior editor on documentaries and creator content. The work landed a few high-paying creators and kept them on retainer longer than the studio was used to.',
     contact: '[Logo placeholder — swap later]',
     icon: (
       <svg viewBox="0 0 24 24">
@@ -223,7 +361,7 @@ const proofCards = [
   {
     name: 'Jaleed',
     role: 'Freelance · Overflow work',
-    body: 'Top-rated Fiverr Direct-Response ad specialist. Trusted overflow editor on premium DR ad campaigns.',
+    body: "Top-rated Fiverr Direct-Response ad specialist. He sends me overflow cuts when his queue backs up.",
     contact: '[Contact link — add later]',
     icon: (
       <svg viewBox="0 0 24 24">
@@ -277,35 +415,35 @@ const filters = [
 const faqItems = [
   {
     q: 'What niches do you work in?',
-    a: 'Direct Response for high-ticket offers. If the offer sells for $1K+ and runs a real DR funnel, we can talk. No low-ticket DTC e-commerce.',
+    a: 'Direct Response for high-ticket offers. If your offer sells for $1K or more and runs on a real DR funnel, we can talk. I do not take low-ticket DTC e-commerce work.',
   },
   {
     q: "What's your turnaround?",
-    a: '2–3 days for a 30–90s ad. 2–3 weeks for a 12-min VSL. Faster with clear briefs.',
+    a: 'For a 30 to 90-second ad, 2 to 3 days. For a 12-minute VSL, 2 to 3 weeks. Faster when the brief is clear.',
   },
   {
     q: 'Do you write scripts?',
-    a: 'No — but I sharpen hooks, pacing, and structure. Scripts come from you or your copywriter.',
+    a: 'No. I sharpen hooks, pacing, and structure once I have the script in hand. The script itself has to come from you or your copywriter.',
   },
   {
     q: 'How does the AI workflow actually work?',
-    a: 'AI handles the repetitive parts — research, B-roll and animation generation, VO drafts, captions, and a second-opinion review of the final cut through a custom Premiere plugin. I hold the creative direction. See the "How I build" section above.',
+    a: 'AI does the repetitive parts. Research, B-roll and animation, VO drafts, caption styling, and a second-opinion review on the final cut through my Premiere plugin. Creative direction is still on me. The "How I build" section above walks through it step by step.',
   },
   {
     q: 'Can I see more of your work?',
-    a: 'The reel and case study cover the main work. Ask for extended samples on the intro call.',
+    a: 'The reel and the case study cover the main work. If you want more, ask on the intro call.',
   },
   {
     q: 'Do you offer one-off projects?',
-    a: 'No. Retainer only — $4,000/mo minimum. Consistency beats one-off polish for DR work.',
+    a: 'No. Retainer only, $4,000/mo minimum. For DR work, consistency does more than one-off polish.',
   },
   {
     q: 'Where are you based?',
-    a: 'Islamabad, Pakistan. I work globally. Timezone-flexible now, mornings-only long term.',
+    a: 'Islamabad, Pakistan. I work with clients globally. Timezone-flexible for now, mornings-only long term.',
   },
   {
     q: 'How do we start?',
-    a: "Book a 15-min intro. We'll cover fit, scope, and start date. If it's a match, contract in 48h.",
+    a: "Book a 15-min intro. We cover fit, scope, and start date. If it's a match, contract goes out in 48 hours.",
   },
 ]
 
@@ -327,20 +465,20 @@ const BookIntroBtn = ({ style }) => (
 
 const mindsetPillars = [
   {
-    title: 'Economics-first thinking',
-    body: "I understand your unit economics before I open Premiere. CPA, LTV, AOV, break-even ROAS — these are inputs to the edit, not afterthoughts. If the target CPA is $75 and the current control is running at $110, I know the ad has to solve for the difference.",
+    title: 'Economics before Premiere',
+    body: "I want to know your CPA, LTV, AOV, and break-even ROAS before I open the timeline. Those are inputs to the edit, not afterthoughts. If your target CPA is $75 and the control is at $110, the ad has to close that gap. That is the brief.",
   },
   {
-    title: 'Hooks engineered, not templated',
-    body: "Hook rate and hold rate are the only metrics that matter in the first three seconds. I don't chase Reels trends — I engineer hooks against the promise. Every winning creative has a testable thesis, not a \"vibe.\"",
+    title: 'Hooks against the promise',
+    body: "Hook rate and hold rate are the only things that matter in the first three seconds. I don't chase Reels trends. I write hooks against what the offer actually promises. Every winning ad has a thesis you can test, not a vibe.",
   },
   {
-    title: 'Iteration cadence built for testing',
-    body: "I ship at ad-cycle speed — 2–3 days per variant. I structure ads in testable batches, not one-offs. I know when the control is about to fatigue and when to angle-shift instead of restart.",
+    title: 'Cadence built to test',
+    body: "I ship at ad-cycle speed, roughly 2 to 3 days per variant, and I build in testable batches instead of one-offs. I can also tell when a control is about to fatigue, and whether the right move is to angle-shift or start over.",
   },
   {
-    title: 'Native to Meta + Google workflows',
-    body: "Aspect ratios, placement-native cuts, safe zones — deliverables ship ready for Ad Manager, not as cinema cuts your buyer has to re-slice. I read the Meta Ad Library before I cut. Same language as your media buyer.",
+    title: 'Native to Meta and Google',
+    body: "Aspect ratios, placement-native cuts, safe zones. Files land in your Ad Manager ready to run, not as cinema cuts your buyer has to re-slice. I read the Meta Ad Library before I cut. Same language your media buyer uses.",
   },
 ]
 
@@ -357,8 +495,8 @@ const vocabRow2 = [
 const workflowSteps = [
   {
     label: 'Research',
-    title: 'Research & hook architecture',
-    body: 'Break the offer, the audience, and the funnel. Draft hook variations against the promise, not the format.',
+    title: 'Research and hook writing',
+    body: 'I break down the offer, the audience, and the funnel first. Then I write hook variations against what the offer actually promises, instead of whatever format is currently trending.',
     icon: <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>,
     tools: [
       { name: 'Gemini', bg: 'linear-gradient(135deg, #4285F4, #9B72CB, #EA4335)', markSvg: <svg viewBox="0 0 24 24"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg> },
@@ -367,8 +505,8 @@ const workflowSteps = [
   },
   {
     label: 'Edit',
-    title: 'Edit & pacing',
-    body: 'Hand-crafted assembly. Story first, cuts second. No filler. No unearned moments.',
+    title: 'Edit and pacing',
+    body: 'The assembly happens by hand. Story first, cuts second. No filler, no unearned beats. If a shot is in the timeline, it is there for the argument, not because a template said so.',
     icon: <svg viewBox="0 0 24 24"><polygon points="12 2 2 8 12 14 22 8 12 2"/><polyline points="2 16 12 22 22 16"/><polyline points="2 12 12 18 22 12"/></svg>,
     tools: [
       { name: 'Premiere Pro', bg: '#2A0634', markText: 'Pr', markColor: '#9999FF' },
@@ -377,8 +515,8 @@ const workflowSteps = [
   },
   {
     label: 'B-Rolls',
-    title: 'Custom B-Rolls & Animation',
-    body: 'Purpose-built B-roll and motion graphics — generated to match the exact story beat and offer tone. Premium animation output at ad-cycle speed.',
+    title: 'Custom B-Rolls and Animation',
+    body: 'B-roll and motion graphics that I generate for the specific story beat, not stock. Good animation at ad-cycle speed, which is usually the part that breaks under a normal DR workflow.',
     icon: <svg viewBox="0 0 24 24"><path d="M12 3 L14 9 L20 12 L14 15 L12 21 L10 15 L4 12 L10 9 Z"/><circle cx="19" cy="5" r="1.5"/><circle cx="5" cy="19" r="1.5"/></svg>,
     tools: [
       { name: 'Kling / Cdans', bg: '#FF3366', markText: 'K' },
@@ -390,8 +528,8 @@ const workflowSteps = [
   },
   {
     label: 'Voice',
-    title: 'Voice & captions',
-    body: 'Cloned VO for iteration speed. Dynamic subtitles that read like a caption editor wrote them — not a robot.',
+    title: 'Voice and captions',
+    body: 'I clone a VO track so I can iterate on the script without going back for another read. Captions get styled to read like a caption editor wrote them, not the default auto-caption look.',
     icon: <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>,
     tools: [
       { name: 'ElevenLabs', bg: '#000000', markText: '11', markFontSize: 8 },
@@ -400,8 +538,8 @@ const workflowSteps = [
   },
   {
     label: 'Ship',
-    title: 'Review & ship',
-    body: "Custom-built Premiere Pro plugin runs Gemini across the finished cut — trained on advanced DR knowledge plus my own experience — and returns a detailed second-opinion review before the video ever leaves my machine. Client review and iterations happen in Frame.io. 2–3 days for a 30–90s ad. 2–3 weeks for a 12-min VSL.",
+    title: 'Review and ship',
+    body: "I built a Premiere Pro plugin that runs Gemini across the finished cut. It is trained on DR editing patterns plus everything I have learned on the job, and it gives me a second-opinion review before anything leaves my machine. Client review happens in Frame.io. Turnaround is 2 to 3 days on a 30 to 90-second ad, and 2 to 3 weeks on a 12-minute VSL.",
     icon: <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
     tools: [
       { name: 'Gemini (custom plugin)', bg: 'linear-gradient(135deg, #4285F4, #9B72CB, #EA4335)', markSvg: <svg viewBox="0 0 24 24"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg> },
@@ -429,12 +567,13 @@ export default function Home() {
   const [activePillar, setActivePillar] = useState(0)
   const [activeStep, setActiveStep] = useState(0)
   const [openProofCard, setOpenProofCard] = useState(null)
-  const [caseOpen, setCaseOpen] = useState(false)
   const [activeMilestone, setActiveMilestone] = useState(3)
   const [scopeOpen, setScopeOpen] = useState(false)
+  const [openCaseChapter, setOpenCaseChapter] = useState(0)
 
   return (
     <>
+      <CustomCursor />
       <TimelineNav />
 
       {/* HERO */}
@@ -460,7 +599,7 @@ export default function Home() {
             <span className="accent">High-Ticket Offers.</span>
           </h1>
           <p className="sub">
-            Ads. VSLs. Product videos. Built to move serious money.
+            I cut the ads and VSLs that carry high-ticket funnels. Built for offers that need to sell, not just look nice.
           </p>
           <div className="cta-row">
             <BookIntroBtn />
@@ -470,12 +609,12 @@ export default function Home() {
       </section>
 
       {/* SHOWREEL */}
-      <section className="showreel" id="reel">
+      <Reveal as="section" className="showreel" id="reel">
         <div className="container">
           <div className="section-label">// The Reel</div>
           <h2 className="section-title">75 seconds.</h2>
           <p className="showreel-sub">
-            Direct Response, cinematic pacing, AI-native workflow. A year of work, condensed.
+            A year of ads and VSLs, cut down to about a minute.
           </p>
           <div className="reel-frame">
             <video
@@ -491,20 +630,33 @@ export default function Home() {
             </video>
           </div>
           <div className="reel-caption">
-            Direct Response<span className="sep">·</span>VSL + Ad<span className="sep">·</span>AI-native workflow
+            Direct Response<span className="sep">·</span>VSL and Ad<span className="sep">·</span>AI-native workflow
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* PROOF */}
-      <div className="proof" id="proof">
+      <Reveal className="proof" id="proof">
         <div className="container" style={{ padding: 0 }}>
           <div className="proof-metric">
-            <CountUp end={1.5} format={(v) => `$${v.toFixed(1)}M`} />/mo ad spend
-            <span className="sep">·</span>
-            <CountUp end={300} format={(v) => `${Math.round(v)}+`} /> projects
-            <span className="sep">·</span>
-            <CountUp end={5} format={(v) => `${Math.round(v)}`} /> years
+            <div className="proof-metric-item">
+              <div className="metric-num">
+                <CountUp end={1.5} format={(v) => `$${v.toFixed(1)}M`} />
+              </div>
+              <div className="metric-label">Monthly ad spend</div>
+            </div>
+            <div className="proof-metric-item">
+              <div className="metric-num">
+                <CountUp end={300} format={(v) => `${Math.round(v)}+`} />
+              </div>
+              <div className="metric-label">Projects delivered</div>
+            </div>
+            <div className="proof-metric-item">
+              <div className="metric-num">
+                <CountUp end={5} format={(v) => `${Math.round(v)}`} />
+              </div>
+              <div className="metric-label">Years editing</div>
+            </div>
           </div>
           <div className="proof-cards">
             {proofCards.map((c, i) => (
@@ -527,10 +679,10 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </div>
+      </Reveal>
 
       {/* WORK */}
-      <section id="work">
+      <Reveal as="section" id="work">
         <div className="container">
           <div className="section-label">// Selected Work</div>
           <h2 className="section-title">Recent projects.</h2>
@@ -578,14 +730,14 @@ export default function Home() {
                   <line x1="12" y1="8" x2="12" y2="22" />
                 </svg>
               </div>
-              <div className="course-tag">DeFi Education · Flagship · Premium Ticket</div>
+              <div className="course-tag">DeFi Education · One of DM's highest-ticket programs</div>
               <h3>DeFi Accelerator (DA) Program</h3>
               <div className="course-stats">
-                <div className="course-stat"><span className="stat-num">4</span><span>iterations shipped — DA 2.0 · 3.2 · 4.2 · 5.0</span></div>
+                <div className="course-stat"><span className="stat-num">4</span><span>iterations shipped, DA 2.0 through 5.0</span></div>
                 <div className="course-stat"><span className="stat-num">Lead</span><span>editor on the current DA 5.0 revamp</span></div>
-                <div className="course-stat"><span className="stat-num">Premium</span><span>high-ticket flagship curriculum — one of DM's most expensive programs</span></div>
+                <div className="course-stat"><span className="stat-num">Top</span><span>tier ticket price at DM</span></div>
               </div>
-              <p>DM's flagship DeFi curriculum. Cut, updated, and revamped across 4 versions over 2+ years — from structure to intros to lesson-level edits. Head of Education: "Special thanks to our masterful video editors — you worked tirelessly."</p>
+              <p>DM's DeFi program. I have cut, updated, and revamped four versions of it over two years and change, from structural work down to individual lesson intros. After the last revamp, the Head of Education said: "Special thanks to our masterful video editors, you worked tirelessly."</p>
             </div>
             <div className="course-card">
               <div className="course-icon">
@@ -595,16 +747,16 @@ export default function Home() {
                   <polyline points="17 7 21 7 21 11" />
                 </svg>
               </div>
-              <div className="course-tag">Stock Market Education · Full Curriculum · Premium</div>
+              <div className="course-tag">Stock Market Education · Full Curriculum</div>
               <h3>Stocks Equity Program</h3>
               <div className="course-stats">
-                <div className="course-stat"><span className="stat-num">Full</span><span>program delivered — every phase, every step</span></div>
-                <div className="course-stat"><span className="stat-num">Heavy</span><span>use of AI-generated animations across the curriculum</span></div>
-                <div className="course-stat"><span className="stat-num">Premium</span><span>comprehensive stocks equity program — top-tier production</span></div>
+                <div className="course-stat"><span className="stat-num">Full</span><span>program shipped, every phase, every step</span></div>
+                <div className="course-stat"><span className="stat-num">Heavy</span><span>use of AI-generated animation across the curriculum</span></div>
+                <div className="course-stat"><span className="stat-num">Above</span><span>the DM baseline for animation quality</span></div>
               </div>
-              <p>DM's stock market curriculum, delivered end-to-end. A very comprehensive, premium program with heavy use of AI-generated animations to explain trading concepts, chart mechanics, and portfolio dynamics — production values well above the DM baseline.</p>
+              <p>DM's stock market program, delivered end to end. I used AI-generated animation heavily to explain the harder parts, like chart mechanics and how a portfolio behaves under different weightings. The animation quality on this one landed above what DM usually ships.</p>
               <div className="course-quote">
-                "Genuinely surprised — and really happy — with the level of premium animations Adeel produced across this program."
+                "Genuinely surprised, and really happy, with the level of premium animations Adeel produced across this program."
                 <small>— Creative Director · Decentralized Masters</small>
               </div>
             </div>
@@ -612,11 +764,11 @@ export default function Home() {
 
           {/* mini CTA */}
           <div className="mini-cta">
-            <div className="cta-text">Like the range? Let's see what your funnel needs.</div>
+            <div className="cta-text">Want the same on your funnel?</div>
             <BookIntroBtn />
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* MARKETER MINDSET */}
       <Reveal as="section" className="marketer-mind" style={{}}>
@@ -626,7 +778,7 @@ export default function Home() {
             I think like a <span className="serif-italic">media buyer</span>.
           </h2>
           <p className="mindset-lead">
-            Editing for direct response is not decoration. Every cut is a bet on ROAS. Every first frame is a thumb-stop test. If your CPA is running <em>$110 against a $75 target</em>, the ad has to solve for the gap — not just look nice.
+            Direct response editing is not decoration. Every cut is a bet on ROAS. Every first frame is a thumb-stop test. If your CPA is running <em>$110 against a $75 target</em>, the ad has to close that gap, not just look nice.
           </p>
 
           <div className="mindset-tabs">
@@ -652,65 +804,68 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="vocab-panel">
-            <div className="vocab-label">Fluent in</div>
-            <div className="marquee marquee-left">
-              <div className="marquee-track">
-                {[...vocabRow1, ...vocabRow1].map((v, i) => (
-                  <span key={i} className="vocab-chip">{v}</span>
-                ))}
-              </div>
-            </div>
-            <div className="marquee marquee-right">
-              <div className="marquee-track marquee-track-reverse">
-                {[...vocabRow2, ...vocabRow2].map((v, i) => (
-                  <span key={i} className="vocab-chip">{v}</span>
-                ))}
-              </div>
-            </div>
+          <div className="vocab-line">
+            <span className="vocab-line-label">Fluent in</span>
+            <span className="vocab-line-terms">
+              ROAS <span className="dot">·</span> CPA <span className="dot">·</span> CPQC <span className="dot">·</span> CTR <span className="dot">·</span> CVR <span className="dot">·</span> Hook Rate <span className="dot">·</span> Hold Rate
+            </span>
           </div>
         </div>
       </Reveal>
 
-      {/* CASE STUDY */}
-      <section className="case-study" id="case">
+      {/* CASE STUDY — INDEPENDENT VIDEO + ACCORDION */}
+      <Reveal as="section" className="case-study" id="case">
         <div className="container">
           <div className="section-label">// Case Study</div>
           <h2 className="section-title">Become Your Own Bank.</h2>
+          <p className="case-intro">A VSL that has stayed in the funnel for a year, when most last three months.</p>
 
-          <div className="pull-quote">
-            <div className="q">This is a masterclass. Incredible job.</div>
-            <div className="attr">— Tan, CEO · Decentralized Masters</div>
-          </div>
-
-          <div className="case-stats">
-            <div className="case-stat"><span className="stat-num">12</span><span>months live and still running</span></div>
-            <div className="case-stat"><span className="stat-num">Core</span><span>active funnel at DM</span></div>
-            <div className="case-stat"><span className="stat-num">Cold</span><span>audience → high-ticket conversion</span></div>
-          </div>
-
-          <button className="reveal-toggle" onClick={() => setCaseOpen(!caseOpen)}>
-            {caseOpen ? 'Hide the breakdown ↑' : 'See how it was cut ↓'}
-          </button>
-
-          {caseOpen && (
-            <div className="case-grid reveal-body">
-              <div className="case-block">
-                <h3>Challenge</h3>
-                <p>Explain the concept of a self-custodied wallet to a cold audience — in a way that builds trust for a high-ticket education offer.</p>
-              </div>
-              <div className="case-block">
-                <h3>Approach</h3>
-                <p>Custom Coinbase wallet visualization, internal footage, hand-built animations for abstract concepts. Storytelling-first pacing.</p>
-              </div>
-              <div className="case-block">
-                <h3>Result</h3>
-                <p>Still running as a core funnel 12 months after launch. Praised internally as one of DM's strongest VSLs to date.</p>
-              </div>
+          {/* Video plays independently with own controls */}
+          <div className="case-video-block">
+            <div className="case-video-frame">
+              <video
+                className="case-video reel-video"
+                controls
+                muted
+                playsInline
+                preload="metadata"
+              >
+                <source src="/reel.mp4" type="video/mp4" />
+              </video>
             </div>
-          )}
+            <div className="case-video-caption">
+              <span className="caption-mark">"</span>
+              <span className="caption-quote">This is a masterclass. Incredible job.</span>
+              <span className="caption-attr">— Tan, CEO · Decentralized Masters</span>
+            </div>
+          </div>
+
+          {/* Accordion — one chapter open at a time */}
+          <div className="case-accordion">
+            {[
+              { title: 'Challenge', headline: 'Explain the invisible.', body: 'A self-custodied wallet is an abstract thing. For a cold audience on a $10K+ education offer, "trust me" does not cut it. The VSL had to make the abstract feel physical, and safe.' },
+              { title: 'Approach', headline: 'Story first, animation second.', body: 'Custom Coinbase wallet visualization. Internal footage. Hand-built animations for the parts that are hard to picture. Every cut is in the timeline because the story needs it, not because a template asked for one.' },
+              { title: 'Result', headline: 'Still in the funnel a year later.', body: 'It launched, became a core funnel at DM, and is still running today. Most VSLs get retired at 90 days.' },
+            ].map((c, i) => (
+              <div key={i} className={`case-chapter ${openCaseChapter === i ? 'open' : ''}`}>
+                <button
+                  className="case-chapter-header"
+                  onClick={() => setOpenCaseChapter(openCaseChapter === i ? null : i)}
+                  type="button"
+                >
+                  <span className="chapter-num">0{i + 1}</span>
+                  <span className="chapter-label">{c.title}</span>
+                  <span className="chapter-headline">{c.headline}</span>
+                  <span className="chapter-plus">+</span>
+                </button>
+                <div className="case-chapter-body">
+                  <p>{c.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* AI WORKFLOW — SCRUBBER */}
       <Reveal as="section" className="workflow" style={{}}>
@@ -768,43 +923,68 @@ export default function Home() {
         </div>
       </Reveal>
 
-      {/* ABOUT — CAREER TIMELINE */}
-      <section id="about">
+      {/* ABOUT — EDITORIAL CAREER STORY */}
+      <Reveal as="section" id="about">
         <div className="container">
           <div className="section-label">// Bio</div>
           <h2 className="section-title">The story.</h2>
 
-          <div className="career-timeline">
+          <p className="story-lead">
+            I started editing in 2018 with a phone and a borrowed gorilla pod. Today I sit inside a $1.5M/mo direct-response shop, cutting the VSLs and ads that carry their funnel.
+          </p>
+
+          <div className="story-chapters">
             {aboutMilestones.map((m, i) => (
-              <button
-                key={i}
-                className={`career-milestone ${activeMilestone === i ? 'active' : ''}`}
-                onClick={() => setActiveMilestone(i)}
-                onMouseEnter={() => setActiveMilestone(i)}
-                type="button"
-              >
-                <div className="milestone-year">{m.year}</div>
-                <div className="milestone-title">{m.title}</div>
-              </button>
+              <div key={i} className={`story-chapter ${i % 2 === 1 ? 'reverse' : ''}`}>
+                <div className="chapter-media">
+                  <div className="chapter-media-frame">
+                    {/* When real media is ready, replace this placeholder with <img> or <video> */}
+                    {m.media ? (
+                      m.media.type === 'video' ? (
+                        <video
+                          className="chapter-media-el"
+                          src={m.media.src}
+                          muted
+                          loop
+                          autoPlay
+                          playsInline
+                        />
+                      ) : (
+                        <img className="chapter-media-el" src={m.media.src} alt={`${m.year} — ${m.title}`} />
+                      )
+                    ) : (
+                      <div className="chapter-media-placeholder">
+                        <span className="ph-year">{m.year}</span>
+                        <span className="ph-label">{m.mediaLabel}</span>
+                        <span className="ph-hint">Drop file at /public/story/{m.year}.jpg</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="chapter-body">
+                  <div className="chapter-year">{m.year}</div>
+                  <h3 className="chapter-heading">{m.title}</h3>
+                  <p className="chapter-text">{m.detail}</p>
+                </div>
+              </div>
             ))}
           </div>
-
-          <div className="milestone-detail" key={activeMilestone}>
-            <p>{aboutMilestones[activeMilestone].detail}</p>
-          </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* SERVICES */}
-      <section id="contact">
+      <Reveal as="section" id="contact">
         <div className="container services">
           <div className="section-label">// Services</div>
           <h2 className="section-title">One retainer client at a time.</h2>
           <div className="service-card">
-            <div className="service-label">Monthly Retainer · One client at a time</div>
-            <div className="service-price">From $4,000<small>&nbsp;/month</small></div>
+            <div className="service-label">Monthly Retainer</div>
+            <div className="service-price">
+              <span>From $4,000</span>
+              <small>per month</small>
+            </div>
             <p className="service-summary">
-              Ads, VSLs, product videos. AI-native workflow. Second-opinion review before delivery. One retainer, one focus.
+              Ads, VSLs, and product videos. Everything runs through my AI stack, and every cut goes through a second-opinion review before I send it. One retainer at a time, so nothing falls through.
             </p>
 
             <button className="reveal-toggle" onClick={() => setScopeOpen(!scopeOpen)}>
@@ -813,23 +993,23 @@ export default function Home() {
 
             {scopeOpen && (
               <ul className="service-scope reveal-body">
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Up to N ad edits per month (30–90s each)</li>
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>OR one long-form VSL (up to 12 min) + supporting cuts</li>
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Full AI-augmented workflow (captions, VO, B-roll, animation)</li>
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Custom-plugin second-opinion review before delivery</li>
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Dedicated Slack/Discord channel · 24h response</li>
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Frame.io for client review + iterations</li>
-                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Testimonial + case-study rights after 60 days</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>A set number of ad edits each month, 30 to 90 seconds each</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Or one long-form VSL up to 12 minutes, plus supporting cuts</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Full AI-augmented workflow for captions, VO, B-roll, and animation</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Every cut runs through my Gemini plugin review before it leaves my machine</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Dedicated Slack or Discord channel, 24-hour response</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Frame.io for your review and revisions</li>
+                <li><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" /></svg>Testimonial and case-study rights after 60 days of work</li>
               </ul>
             )}
 
             <BookIntroBtn style={{ marginTop: 20 }} />
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* TESTIMONIALS */}
-      <section id="praise">
+      <Reveal as="section" id="praise">
         <div className="container">
           <div className="section-label">// What people say</div>
           <h2 className="section-title">The receipts.</h2>
@@ -863,10 +1043,10 @@ export default function Home() {
             <BookIntroBtn />
           </div>
         </div>
-      </section>
+      </Reveal>
 
       {/* FAQ */}
-      <section id="faq">
+      <Reveal as="section" id="faq">
         <div className="container">
           <div className="section-label">// FAQ</div>
           <h2 className="section-title">The usual questions.</h2>
@@ -884,10 +1064,10 @@ export default function Home() {
             </div>
           ))}
         </div>
-      </section>
+      </Reveal>
 
       {/* FINAL CTA */}
-      <div className="final-cta" id="end">
+      <Reveal className="final-cta" id="end">
         <h2>
           If you're running high-ticket DR and need an editor who can keep up, <em>let's talk.</em>
         </h2>
@@ -895,7 +1075,7 @@ export default function Home() {
         <span className="email">
           or email <a href="mailto:hello@adeelsedits.com">hello@adeelsedits.com</a>
         </span>
-      </div>
+      </Reveal>
 
       {/* FOOTER */}
       <footer>
@@ -904,7 +1084,7 @@ export default function Home() {
           <a href="mailto:hello@adeelsedits.com">hello@adeelsedits.com</a>
           <a href="#">LinkedIn</a>
         </div>
-        <div>© 2026 · Built with obsession</div>
+        <div>© 2026 Adeel Abbas</div>
       </footer>
     </>
   )
