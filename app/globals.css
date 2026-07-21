@@ -17,6 +17,14 @@
   --font-serif: var(--font-sans-loaded), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-sans: var(--font-sans-loaded), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-mono: var(--font-mono-loaded), 'SF Mono', 'Cascadia Code', 'Fira Code', Consolas, monospace;
+
+  /* Elevation tokens (redesign 2026-07-22) */
+  --amber-grad: linear-gradient(105deg, #F5C87B 0%, #E8B04B 52%, #C8912F 100%);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow-2: 0 26px 70px -22px rgba(0,0,0,0.78), 0 0 0 1px rgba(245,241,234,0.04);
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -2268,3 +2276,103 @@ footer .foot-links a:hover { color: var(--amber); }
   .mini-cta .cta-text { font-size: 18px; }
   .ai-pipeline-viz { padding: 14px 16px; font-size: 10px; }
 }
+
+/* ================================================================
+   ELEVATION LAYER — redesign 2026-07-22 (cinematic dark + amber)
+   Appended overrides; later cascade wins at equal specificity.
+   ================================================================ */
+
+/* Ambient cinematic atmosphere behind all content */
+body { position: relative; background: var(--bg); }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(58% 42% at 84% 6%, rgba(232,176,75,0.11), transparent 60%),
+    radial-gradient(52% 44% at 10% 26%, rgba(232,176,75,0.06), transparent 62%),
+    radial-gradient(85% 60% at 50% 112%, rgba(200,145,47,0.09), transparent 60%),
+    var(--bg);
+}
+body::after {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Selection, focus, scrollbar */
+::selection { background: rgba(232,176,75,0.28); color: #fff; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(245,241,234,0.14); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(232,176,75,0.40); }
+
+/* Display typography lift + amber gradient accents */
+.section-title { font-size: clamp(38px, 4.6vw, 72px); letter-spacing: -0.035em; }
+.hero h1 { font-size: clamp(46px, 5.8vw, 92px); letter-spacing: -0.04em; }
+.hero h1 .accent,
+.section-title .serif-italic {
+  background: var(--amber-grad);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  font-style: normal;
+}
+.section-label::before {
+  content: ''; display: inline-block;
+  width: 22px; height: 1px; background: var(--amber); opacity: 0.55;
+}
+
+/* Primary CTA — gradient + glow + Expo motion */
+.btn-primary {
+  background: var(--amber-grad);
+  border-radius: var(--radius);
+  padding: 16px 28px;
+  box-shadow: 0 12px 30px -12px rgba(232,176,75,0.55);
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 46px -14px rgba(232,176,75,0.62);
+}
+.nav-cta, .tl-cta {
+  transition: background 0.3s var(--ease-out), color 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+.nav-cta:hover, .tl-cta:hover { box-shadow: 0 0 22px -4px rgba(232,176,75,0.5); }
+
+/* Unified card + tile elevation and motion */
+.proof-card, .work-tile, .course-card, .faq-item, .mini-cta {
+  transition: border-color 0.4s var(--ease-out), transform 0.4s var(--ease-out),
+              box-shadow 0.4s var(--ease-out), background 0.4s var(--ease-out);
+}
+.proof-card:hover, .course-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--amber-line);
+  box-shadow: var(--shadow-2);
+}
+.work-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-2), 0 0 0 1px rgba(232,176,75,0.20);
+}
+.reel-frame { border-radius: var(--radius-lg); }
+.chip { transition: all 0.3s var(--ease-out); }
+.vertical-chip { border-radius: 6px; }
+
+/* Glass nav depth */
+.timeline-nav {
+  box-shadow: 0 24px 70px -20px rgba(0,0,0,0.65), 0 0 0 1px rgba(245,241,234,0.05) inset;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mobile display sizing */
+@media (max-width: 760px) {
+  .section-title { font-size: clamp(30px, 8vw, 44px); }
+  .hero h1 { font-size: clamp(38px, 11vw, 60px); }
+}
+/* ============================ end elevation layer ============================ */
