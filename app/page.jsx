@@ -850,15 +850,15 @@ export default function Home() {
           {/* Video plays independently with own controls */}
           <div className="case-video-block">
             <div className="case-video-frame">
-              <video
-                className="case-video reel-video"
-                controls
-                muted
-                playsInline
-                preload="metadata"
-              >
-                <source src="/reel.mp4" type="video/mp4" />
-              </video>
+              <iframe
+                className="case-video"
+                src="https://www.youtube.com/embed/bwzWsJljEBY?rel=0&modestbranding=1"
+                title="Become Your Own Bank — VSL"
+                style={{ border: 0 }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+
             </div>
             <div className="case-video-caption">
               <span className="caption-mark">"</span>
@@ -1042,15 +1042,21 @@ export default function Home() {
           <h2 className="section-title">The receipts.</h2>
           <div className="testimonials-grid">
             {[
-              { name: 'Editing Machine CEO', role: 'Video post-production studio' },
-              { name: 'DM Manager', role: 'Decentralized Masters' },
-              { name: 'Jaleed', role: 'Top-rated Fiverr Ads Editor' },
+              { name: 'Jaleed Mahmood', role: 'Top-rated on Fiverr & Upwork', quote: "He didn't just produce ads, he brought creative ideas to the table and translated them into engaging, high-quality visuals that exceeded our expectations. It's rare to find someone who combines creativity, technical expertise, and a genuine commitment to delivering outstanding results." },
+              { name: 'DM Manager', role: 'Decentralized Masters', quote: "You guys are really, really amazing. I checked both of your videos and everything was so good. I'm really proud of you guys." },
+              { name: 'Editing Machine', role: 'Founder · UK post-production studio', quote: null },
             ].map((t) => (
               <div key={t.name} className="testimonial">
                 <div className="testimonial-quote-icon">"</div>
                 <div>
-                  <div className="pending-tag">Pending</div>
-                  <div className="testimonial-quote">Video testimonial in the works.</div>
+                  {t.quote ? (
+                    <div className="testimonial-quote">{t.quote}</div>
+                  ) : (
+                    <>
+                      <div className="pending-tag">Coming soon</div>
+                      <div className="testimonial-quote">Written testimonial on the way.</div>
+                    </>
+                  )}
                 </div>
                 <div className="testimonial-attribution">
                   <div className="avatar-placeholder">
