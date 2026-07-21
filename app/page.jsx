@@ -390,18 +390,31 @@ const iconDoc = (
 )
 
 const workTiles = [
-  { cat: 'vsl', label: 'VSL', title: 'Become Your Own Bank', status: 'Coming soon', icon: iconPlay },
-  { cat: 'vsl', label: 'VSL', title: 'BYOB Indirect', status: 'Coming soon', icon: iconPlay },
-  { cat: 'ad', label: 'Ad', title: 'AI-Driven Ad', status: 'Coming soon', icon: iconSpark },
-  { cat: 'ad', label: 'Ad', title: 'Ad Batch 321', status: 'Coming soon', icon: iconSpark },
-  { cat: 'ad', label: 'Ad', title: 'Ad Batch 322', status: 'Coming soon', icon: iconSpark },
-  { cat: 'ad', label: 'Ad', title: 'Stock Training Ad', status: 'Coming soon', icon: iconSpark },
-  { cat: 'ad', label: 'Ad', title: 'Ad — Coming', status: 'Coming soon', icon: iconSpark },
-  { cat: 'ad', label: 'Ad', title: 'Ad — Coming', status: 'Coming soon', icon: iconSpark },
-  { cat: 'documentary', label: 'Documentary', title: 'Documentary — 01', status: 'YouTube · Coming soon', icon: iconDoc },
-  { cat: 'documentary', label: 'Documentary', title: 'Documentary — 02', status: 'YouTube · Coming soon', icon: iconDoc },
-  { cat: 'documentary', label: 'Documentary', title: 'Documentary — 03', status: 'YouTube · Coming soon', icon: iconDoc },
-  { cat: 'documentary', label: 'Documentary', title: 'Documentary — 04', status: 'YouTube · Coming soon', icon: iconDoc },
+  // 12 Direct Response ads for DM — vertical 9:16
+  { cat: 'ad', label: 'Direct Response', title: 'Curiosity / UGC', orient: 'portrait', loop: '/work/opt/ads/ad01.mp4', yt: 'https://youtube.com/shorts/1OjvX5w5xoU' },
+  { cat: 'ad', label: 'Direct Response', title: 'Urgency / Negative Hook', orient: 'portrait', loop: '/work/opt/ads/ad02.mp4', yt: 'https://youtube.com/shorts/tnVDCulvz2A' },
+  { cat: 'ad', label: 'Direct Response', title: 'Slightly-Aware Audience', orient: 'portrait', loop: '/work/opt/ads/ad03.mp4', yt: 'https://youtu.be/LkaGEGjrfG0' },
+  { cat: 'ad', label: 'Direct Response', title: 'Negative Hook', orient: 'portrait', loop: '/work/opt/ads/ad04.mp4', yt: 'https://youtu.be/4SahuWX4j9U' },
+  { cat: 'ad', label: 'Direct Response', title: 'Claim and Answer', orient: 'portrait', loop: '/work/opt/ads/ad05.mp4', yt: 'https://youtu.be/b2wP3pI9bVY' },
+  { cat: 'ad', label: 'Direct Response', title: 'Comparison Hook', orient: 'portrait', loop: '/work/opt/ads/ad06.mp4', yt: 'https://youtu.be/mOsZFJlv7Cg' },
+  { cat: 'ad', label: 'Direct Response', title: 'Date and Data', orient: 'portrait', loop: '/work/opt/ads/ad07.mp4', yt: 'https://youtu.be/HkK4b7KC32M' },
+  { cat: 'ad', label: 'Direct Response', title: 'Insider Info', orient: 'portrait', loop: '/work/opt/ads/ad08.mp4', yt: 'https://youtu.be/c85WTKC4a7Y' },
+  { cat: 'ad', label: 'Direct Response', title: 'Problem-Aware Audience', orient: 'portrait', loop: '/work/opt/ads/ad09.mp4', yt: 'https://youtube.com/shorts/Xm63LTmEnsQ' },
+  { cat: 'ad', label: 'Direct Response', title: 'Shocking News', orient: 'portrait', loop: '/work/opt/ads/ad10.mp4', yt: 'https://youtube.com/shorts/3PcrVXtnWzQ' },
+  { cat: 'ad', label: 'Direct Response', title: 'Aware Audience / Big Claim', orient: 'portrait', loop: '/work/opt/ads/ad11.mp4', yt: 'https://youtube.com/shorts/XDtwF6S8lIg' },
+  { cat: 'ad', label: 'Direct Response', title: 'Curiosity / Pain Point', orient: 'portrait', loop: '/work/opt/ads/ad12.mp4', yt: 'https://youtu.be/nPg5fYLJsHw' },
+  // 3 cinematic brand ads outside DM — 16:9
+  { cat: 'ad', label: 'Cinematic', title: 'Cinematic Brand Ad', orient: 'landscape', loop: '/work/opt/ads/ad13.mp4', yt: 'https://youtu.be/dK79xh9B7g0' },
+  { cat: 'ad', label: 'Cinematic', title: 'Lumiriam — Brand Film', orient: 'landscape', loop: '/work/opt/ads/ad14.mp4', yt: 'https://youtu.be/EG6sJLpExgQ' },
+  { cat: 'ad', label: 'Cinematic', title: 'Apple Watch — Feature', orient: 'landscape', loop: '/work/opt/ads/ad15.mp4', yt: 'https://youtu.be/zY8bjWyvZno' },
+  // VSLs — short/direct first
+  { cat: 'vsl', label: 'VSL', title: 'Become Your Own Bank — Direct', note: '12+ months live', orient: 'landscape', loop: '/work/opt/vsls/vsl1.mp4', yt: 'https://youtu.be/bwzWsJljEBY' },
+  { cat: 'vsl', label: 'VSL', title: 'Become Your Own Bank — Indirect', note: 'Unaware audience', orient: 'landscape', loop: '/work/opt/vsls/vsl2.mp4', yt: 'https://youtu.be/PtPOQMBRx7g' },
+  // Documentaries — 16:9
+  { cat: 'documentary', label: 'Documentary', title: 'AGI Is Almost Here', orient: 'landscape', loop: '/work/opt/documentaries/doc1.mp4', yt: 'https://youtu.be/uPXmLKYPGzg' },
+  { cat: 'documentary', label: 'Documentary', title: 'The Overemployed', note: '1M+ views', orient: 'landscape', loop: '/work/opt/documentaries/doc2.mp4', yt: 'https://youtu.be/oR-mzzIsHVE' },
+  { cat: 'documentary', label: 'Documentary', title: 'Lazarus: N. Korean Hackers', orient: 'landscape', loop: '/work/opt/documentaries/doc3.mp4', yt: 'https://youtu.be/VvSIobRXhUs' },
+  { cat: 'documentary', label: 'Documentary', title: 'The Linux Political Spectrum', orient: 'landscape', loop: '/work/opt/documentaries/doc4.mp4', yt: 'https://youtu.be/uca3Ggg_2lg' },
 ]
 
 const filters = [
@@ -702,21 +715,35 @@ export default function Home() {
             {workTiles.map((t, i) => {
               const show = filter === 'all' || t.cat === filter
               return (
-                <div
+                <a
                   key={i}
-                  className="work-tile"
+                  className={`work-tile ${t.orient}`}
                   data-category={t.cat}
+                  href={t.yt}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   style={show ? {} : { display: 'none' }}
+                  onMouseEnter={(e) => {
+                    const v = e.currentTarget.querySelector('video')
+                    if (v) { v.currentTime = 0; v.play().catch(() => {}) }
+                  }}
+                  onMouseLeave={(e) => {
+                    const v = e.currentTarget.querySelector('video')
+                    if (v) { v.pause() }
+                  }}
                 >
-                  <div className="tile-header">
-                    <div className="tile-category">{t.label}</div>
-                    <div className="tile-icon">{t.icon}</div>
+                  <div className="tile-media">
+                    <video src={t.loop} muted loop playsInline preload="auto" />
+                    <span className="tile-play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                    </span>
                   </div>
-                  <div>
-                    <div className="tile-title">{t.title}</div>
-                    <div className="tile-status">{t.status}</div>
+                  <div className="tile-meta">
+                    <span className="tile-category">{t.label}</span>
+                    <span className="tile-title">{t.title}</span>
+                    {t.note ? <span className="tile-status">{t.note}</span> : null}
                   </div>
-                </div>
+                </a>
               )
             })}
           </div>
