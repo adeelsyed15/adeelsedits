@@ -310,25 +310,25 @@ const aboutMilestones = [
     year: '2018',
     title: 'First frames',
     detail: 'I was in the third year of my software engineering degree. Around that time I got hooked on big YouTubers like MKBHD and Peter McKinnon, plus a handful of local content creators. I borrowed a gorilla pod, filmed my own vlogs on a phone, and won a department vlogging competition against a few actual camera ops. That got me pulled into a national short-film competition at LUMS. I wrote the story, acted in it, directed it, and cut it. It won. That was the moment I knew video was the actual thing, not a side project.',
-    mediaLabel: 'Early vlogging footage',
+    media: { type: 'image', src: '/story/2018.jpg' },
   },
   {
     year: '2021',
     title: 'Editing Machine',
     detail: 'I graduated. Tried the software engineering job track for a bit and then picked the edit bay instead. Joined Editing Machine, a UK YouTube post-production studio, as a senior editor. Cut documentaries and creator content that helped the studio sign a few high-paying creators and keep them longer than usual.',
-    mediaLabel: 'Editing Machine · London',
+    media: { type: 'image', src: '/story/2021.jpg' },
   },
   {
     year: '2023',
     title: 'Decentralized Masters',
     detail: 'In-house at a $1.5M/mo direct-response education company. Lead editor on the VSLs, ads, and full course revamps. I cut the "Become Your Own Bank" VSL, which is still one of their core active funnels.',
-    mediaLabel: 'DM in-house workspace',
+    media: { type: 'image', src: '/story/2023.png' },
   },
   {
     year: '2026',
     title: 'Available',
     detail: 'Working with a short list of brands running high-ticket offers. One retainer client at a time.',
-    mediaLabel: 'Current setup',
+    media: { type: 'image', src: '/story/2026-web.jpg' },
   },
 ]
 
