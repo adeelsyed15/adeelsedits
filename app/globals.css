@@ -2141,15 +2141,17 @@ section {
 .service-scope li svg { width: 16px; height: 16px; stroke: var(--amber); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
 /* TESTIMONIALS */
-.testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-@media (max-width: 800px) { .testimonials-grid { grid-template-columns: 1fr; } }
+.testimonials-grid { column-count: 3; column-gap: 24px; }
+@media (max-width: 900px) { .testimonials-grid { column-count: 2; } }
+@media (max-width: 600px) { .testimonials-grid { column-count: 1; } }
 .testimonial {
   padding: 32px;
   border: 1px solid var(--border); border-radius: 6px;
   background: var(--card);
-  min-height: 260px;
-  display: flex; flex-direction: column; justify-content: space-between;
+  display: flex; flex-direction: column;
   position: relative;
+  break-inside: avoid; -webkit-column-break-inside: avoid;
+  margin-bottom: 24px;
 }
 .testimonial-quote-icon {
   position: absolute; top: 20px; right: 24px;
@@ -2376,3 +2378,34 @@ body::after {
   .hero h1 { font-size: clamp(38px, 11vw, 60px); }
 }
 /* ============================ end elevation layer ============================ */
+
+/* About intro portrait (2026-07-22) */
+.about-intro { display: flex; align-items: center; gap: 30px; margin-bottom: 56px; }
+.about-intro .story-lead { margin: 0; }
+.about-portrait { flex-shrink: 0; }
+.about-portrait img {
+  width: 132px; height: 132px; border-radius: 18px;
+  object-fit: cover; display: block;
+  border: 1px solid var(--amber-line);
+  box-shadow: var(--shadow-2), 0 0 0 6px rgba(232,176,75,0.05);
+}
+@media (max-width: 640px) {
+  .about-intro { flex-direction: column; align-items: flex-start; gap: 20px; }
+}
+
+/* Work video modal — in-page player (2026-07-22) */
+.video-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 40px; background: rgba(10,8,6,0.86); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); animation: vmFade 0.28s var(--ease-out); }
+@keyframes vmFade { from { opacity: 0 } to { opacity: 1 } }
+.video-modal-inner { position: relative; width: min(1040px, 92vw); animation: vmPop 0.32s var(--ease-out); }
+.video-modal-inner.portrait { width: min(430px, 92vw); }
+@keyframes vmPop { from { transform: translateY(12px) scale(0.98); opacity: 0 } to { transform: none; opacity: 1 } }
+.video-modal-frame { width: 100%; aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; background: #000; box-shadow: 0 40px 120px rgba(0,0,0,0.6), 0 0 0 1px rgba(232,176,75,0.18); }
+.video-modal-inner.portrait .video-modal-frame { aspect-ratio: 9 / 16; }
+.video-modal-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.video-modal-close { position: absolute; top: -48px; right: 0; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border-strong); background: rgba(23,19,16,0.75); color: var(--text); font-size: 22px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s var(--ease-out), color 0.2s var(--ease-out); }
+.video-modal-close:hover { background: var(--amber); color: var(--bg); }
+@media (max-width: 640px) { .video-modal { padding: 18px; } .video-modal-close { top: -44px; } }
+
+/* Proof-strip logos (2026-07-22) */
+.proof-logo { height: 30px; margin-bottom: 20px; display: flex; align-items: center; }
+.proof-logo img { max-height: 100%; max-width: 100%; width: auto; object-fit: contain; display: block; }

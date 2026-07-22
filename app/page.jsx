@@ -337,7 +337,8 @@ const proofCards = [
     name: 'Decentralized Masters',
     role: 'In-house · 2023 → Present',
     body: '$1.5M/mo direct-response education company. I was the second editor they hired. Today I lead edits on their VSLs, ads, and course launches from an 8-person video team.',
-    contact: '[Logo placeholder — swap later]',
+    contact: '',
+    logo: '/logos/dm.png',
     icon: (
       <svg viewBox="0 0 24 24">
         <polygon points="12 2 22 12 12 22 2 12" />
@@ -350,7 +351,8 @@ const proofCards = [
     name: 'Editing Machine',
     role: 'Senior Editor · 2021 → 2023',
     body: 'UK YouTube post-production studio. Senior editor on documentaries and creator content. The work landed a few high-paying creators and kept them on retainer longer than the studio was used to.',
-    contact: '[Logo placeholder — swap later]',
+    contact: '',
+    logo: '/logos/editing-machine.png',
     icon: (
       <svg viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="9" />
@@ -574,6 +576,11 @@ function BrandTool({ tool }) {
   )
 }
 
+function ytEmbed(url) {
+  const m = String(url).match(/(?:youtu\.be\/|shorts\/|embed\/|v=)([A-Za-z0-9_-]{6,})/)
+  return `https://www.youtube.com/embed/${m ? m[1] : ''}?autoplay=1&rel=0&modestbranding=1&playsinline=1`
+}
+
 export default function Home() {
   const [filter, setFilter] = useState('ad')
   const [openFaq, setOpenFaq] = useState(null)
@@ -583,11 +590,36 @@ export default function Home() {
   const [activeMilestone, setActiveMilestone] = useState(3)
   const [scopeOpen, setScopeOpen] = useState(false)
   const [openCaseChapter, setOpenCaseChapter] = useState(0)
+  const [activeVideo, setActiveVideo] = useState(null)
+
+  useEffect(() => {
+    if (!activeVideo) return
+    const onKey = (e) => { if (e.key === 'Escape') setActiveVideo(null) }
+    document.addEventListener('keydown', onKey)
+    document.body.style.overflow = 'hidden'
+    return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
+  }, [activeVideo])
 
   return (
     <>
       <CustomCursor />
       <TimelineNav />
+
+      {activeVideo && (
+        <div className="video-modal" onClick={() => setActiveVideo(null)} role="dialog" aria-modal="true">
+          <div className={`video-modal-inner ${activeVideo.orient}`} onClick={(e) => e.stopPropagation()}>
+            <button className="video-modal-close" onClick={() => setActiveVideo(null)} aria-label="Close video">×</button>
+            <div className="video-modal-frame">
+              <iframe
+                src={activeVideo.src}
+                title={activeVideo.title || 'Video'}
+                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* HERO */}
       <section className="hero" id="hero">
@@ -678,15 +710,23 @@ export default function Home() {
                 className={`proof-card ${openProofCard === i ? 'is-open' : ''}`}
                 onClick={() => setOpenProofCard(openProofCard === i ? null : i)}
               >
-                <div className="proof-icon">{c.icon}</div>
-                <div className="proof-name">{c.name}</div>
+                {c.logo ? (
+                  <div className="proof-logo"><img src={c.logo} alt={c.name} /></div>
+                ) : (
+                  <>
+                    <div className="proof-icon">{c.icon}</div>
+                    <div className="proof-name">{c.name}</div>
+                  </>
+                )}
                 <div className="proof-role">{c.role}</div>
                 <span className="proof-hint">Tap / hover to expand +</span>
                 <div className="proof-details">
                   <p>{c.body}</p>
-                  <div className="proof-contact">
-                    <span className="placeholder-tag">{c.contact}</span>
-                  </div>
+                  {c.contact ? (
+                    <div className="proof-contact">
+                      <span className="placeholder-tag">{c.contact}</span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -722,6 +762,11 @@ export default function Home() {
                   href={t.yt}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return
+                    e.preventDefault()
+                    setActiveVideo({ src: ytEmbed(t.yt), orient: t.orient, title: t.title })
+                  }}
                   style={show ? {} : { display: 'none' }}
                   onMouseEnter={(e) => {
                     const v = e.currentTarget.querySelector('video')
@@ -956,9 +1001,14 @@ export default function Home() {
           <div className="section-label">// Bio</div>
           <h2 className="section-title">The story.</h2>
 
-          <p className="story-lead">
-            I started editing in 2018 with a phone and a borrowed gorilla pod. Today I sit inside a $1.5M/mo direct-response shop, cutting the VSLs and ads that carry their funnel.
-          </p>
+          <div className="about-intro">
+            <div className="about-portrait">
+              <img src="/headshot.jpg" alt="Adeel Abbas, direct response video editor" />
+            </div>
+            <p className="story-lead">
+              I started editing in 2018 with a phone and a borrowed gorilla pod. Today I sit inside a $1.5M/mo direct-response shop, cutting the VSLs and ads that carry their funnel.
+            </p>
+          </div>
 
           <div className="story-chapters">
             {aboutMilestones.map((m, i) => (
@@ -1042,9 +1092,14 @@ export default function Home() {
           <h2 className="section-title">The receipts.</h2>
           <div className="testimonials-grid">
             {[
-              { name: 'Jaleed Mahmood', role: 'Top-rated on Fiverr & Upwork', quote: "He didn't just produce ads, he brought creative ideas to the table and translated them into engaging, high-quality visuals that exceeded our expectations. It's rare to find someone who combines creativity, technical expertise, and a genuine commitment to delivering outstanding results." },
-              { name: 'DM Manager', role: 'Decentralized Masters', quote: "You guys are really, really amazing. I checked both of your videos and everything was so good. I'm really proud of you guys." },
+              { name: 'Tan', role: 'CEO · Decentralized Masters', quote: "This is an absolute banger. This will be a winner. Great job, you can deliver." },
+              { name: 'Thomas', role: 'CMO · Decentralized Masters', quote: "Amazing edits. These ads will crush." },
+              { name: 'Doc', role: 'Head of Education · Decentralized Masters', quote: "Bravo, Adeel. Amazing job, man." },
+              { name: 'Jack Middleton', role: 'Media Buyer · Decentralized Masters', quote: "The video gave me goosebumps. Great work." },
               { name: 'Editing Machine', role: 'Founder · UK post-production studio', quote: null },
+              { name: 'Rafaela Sant’Anna', role: 'Decentralized Masters', quote: "The amazing Adeel. Loved it! The sound design is fire." },
+              { name: 'Kristen Palmer', role: 'Decentralized Masters', quote: "You are the best, Adeel. Thanks for the help and patience!" },
+              { name: 'Jaleed Mahmood', role: 'Top-rated on Fiverr & Upwork', quote: "He didn't just produce ads, he brought creative ideas to the table and translated them into engaging, high-quality visuals that exceeded our expectations. It's rare to find someone who combines creativity, technical expertise, and a genuine commitment to delivering outstanding results." },
             ].map((t) => (
               <div key={t.name} className="testimonial">
                 <div className="testimonial-quote-icon">"</div>
@@ -1115,7 +1170,7 @@ export default function Home() {
         <div>Adeel · adeelsedits.com</div>
         <div className="foot-links">
           <a href="mailto:hello@adeelsedits.com">hello@adeelsedits.com</a>
-          <a href="#">LinkedIn</a>
+          <a href="https://www.linkedin.com/in/adeel-abbas-editor/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         </div>
         <div>© 2026 Adeel Abbas</div>
       </footer>

@@ -31,12 +31,14 @@ export const metadata = {
     url: 'https://adeelsedits.com',
     siteName: 'Adeel',
     type: 'website',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Adeel — Direct Response Video Editor' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Adeel — Direct Response Video Editor',
     description:
       'Direct Response editor for high-ticket offers. $1.5M/mo ad spend. 300+ projects. 5 years.',
+    images: ['/og-image.jpg'],
   },
 }
 
