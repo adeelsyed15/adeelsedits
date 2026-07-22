@@ -328,7 +328,8 @@ const aboutMilestones = [
     year: '2026',
     title: 'Available',
     detail: 'Working with a short list of brands running high-ticket offers. One retainer client at a time.',
-    media: { type: 'image', src: '/story/2026-web.jpg' },
+    media: { type: 'image', src: '/story/2026-final.jpg' },
+    cta: true,
   },
 ]
 
@@ -363,6 +364,8 @@ const proofCards = [
   {
     name: 'Jaleed',
     role: 'Freelance · Overflow work',
+    logo: '/logos/fiverr.png',
+    keepName: true,
     body: "Top-rated Fiverr Direct-Response ad specialist. He sends me overflow cuts when his queue backs up.",
     contact: '[Contact link — add later]',
     icon: (
@@ -713,11 +716,9 @@ export default function Home() {
                 {c.logo ? (
                   <div className="proof-logo"><img src={c.logo} alt={c.name} /></div>
                 ) : (
-                  <>
-                    <div className="proof-icon">{c.icon}</div>
-                    <div className="proof-name">{c.name}</div>
-                  </>
+                  <div className="proof-icon">{c.icon}</div>
                 )}
+                {(!c.logo || c.keepName) && <div className="proof-name">{c.name}</div>}
                 <div className="proof-role">{c.role}</div>
                 <span className="proof-hint">Tap / hover to expand +</span>
                 <div className="proof-details">
@@ -1034,6 +1035,13 @@ export default function Home() {
                         <span className="ph-year">{m.year}</span>
                         <span className="ph-label">{m.mediaLabel}</span>
                         <span className="ph-hint">Drop file at /public/story/{m.year}.jpg</span>
+                      </div>
+                    )}
+                    {m.cta && (
+                      <div className="chapter-cta">
+                        <span className="chapter-cta-eyebrow">Available</span>
+                        <span className="chapter-cta-line">Open for one retainer client.</span>
+                        <a href={CAL_URL} target="_blank" rel="noopener noreferrer" className="chapter-cta-btn">Book a 15-min intro →</a>
                       </div>
                     )}
                   </div>
