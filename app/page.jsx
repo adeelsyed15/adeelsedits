@@ -1104,7 +1104,7 @@ export default function Home() {
               { name: 'Thomas', role: 'CMO · Decentralized Masters', quote: "Amazing edits. These ads will crush." },
               { name: 'Doc', role: 'Head of Education · Decentralized Masters', quote: "Bravo, Adeel. Amazing job, man." },
               { name: 'Jack Middleton', role: 'Media Buyer · Decentralized Masters', quote: "The video gave me goosebumps. Great work." },
-              { name: 'Editing Machine', role: 'Founder · UK post-production studio', quote: null },
+              { name: 'Martin Bool', role: 'CEO · Editing Machine', quote: "I've worked with Adeel for a number of years, and his dedication and performance has been top class. Whenever we needed an ad or VSL project completed, and it needed the best chance to actually convert viewers into customers, we'd always assign it to Adeel. I can't recommend him enough!" },
               { name: 'Rafaela Sant’Anna', role: 'Decentralized Masters', quote: "The amazing Adeel. Loved it! The sound design is fire." },
               { name: 'Kristen Palmer', role: 'Decentralized Masters', quote: "You are the best, Adeel. Thanks for the help and patience!" },
               { name: 'Jaleed Mahmood', role: 'Top-rated on Fiverr & Upwork', quote: "He didn't just produce ads, he brought creative ideas to the table and translated them into engaging, high-quality visuals that exceeded our expectations. It's rare to find someone who combines creativity, technical expertise, and a genuine commitment to delivering outstanding results." },
@@ -1169,7 +1169,7 @@ export default function Home() {
         </h2>
         <a href={CAL_URL} target="_blank" rel="noopener noreferrer" className="btn-primary">Book a 15-min intro →</a>
         <span className="email">
-          or email <a href="mailto:hello@adeelsedits.com">hello@adeelsedits.com</a>
+          or email <a href="mailto:adeelhafiz9@gmail.com">adeelhafiz9@gmail.com</a>
         </span>
       </Reveal>
 
@@ -1177,7 +1177,7 @@ export default function Home() {
       <footer>
         <div>Adeel · adeelsedits.com</div>
         <div className="foot-links">
-          <a href="mailto:hello@adeelsedits.com">hello@adeelsedits.com</a>
+          <a href="mailto:adeelhafiz9@gmail.com">adeelhafiz9@gmail.com</a>
           <a href="https://www.linkedin.com/in/adeel-abbas-editor/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         </div>
         <div>© 2026 Adeel Abbas</div>
