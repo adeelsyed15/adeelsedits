@@ -32,119 +32,7 @@ function Reveal({ children, delay = 0, as: Tag = 'div', className = '', style = 
   )
 }
 
-// --- Custom Editorial Cursor ---
-function CustomCursor() {
-  const cursorRef = useRef(null)
-  const [state, setState] = useState('default')
-  const [pressed, setPressed] = useState(false)
-  const videoPlayingRef = useRef(false)
-
-  useEffect(() => {
-    document.body.classList.add('has-custom-cursor')
-
-    // Track reel video play state — also flip cursor icon immediately when video toggles
-    const videos = Array.from(document.querySelectorAll('.reel-video'))
-    const onPlay = () => {
-      videoPlayingRef.current = true
-      setState((prev) => (prev === 'video-play' || prev === 'video-pause') ? 'video-pause' : prev)
-    }
-    const onPause = () => {
-      videoPlayingRef.current = false
-      setState((prev) => (prev === 'video-play' || prev === 'video-pause') ? 'video-play' : prev)
-    }
-    videos.forEach((v) => {
-      if (!v.paused) videoPlayingRef.current = true
-      v.addEventListener('play', onPlay)
-      v.addEventListener('pause', onPause)
-    })
-
-    let raf = null
-    let mx = 0, my = 0
-    let cx = 0, cy = 0
-    let initialized = false
-
-    const handleMove = (e) => {
-      mx = e.clientX
-      my = e.clientY
-      if (!initialized) { cx = mx; cy = my; initialized = true }
-
-      const t = e.target
-      let s = 'default'
-
-      // Video first — highest priority when inside the reel frame
-      const reelFrame = t.closest('.reel-frame')
-      if (reelFrame) {
-        const video = reelFrame.querySelector('video')
-        if (video) {
-          const rect = video.getBoundingClientRect()
-          // Bottom ~46px = native controls strip
-          const controlsTop = rect.bottom - 46
-          if (e.clientY > controlsTop) {
-            s = 'video-controls'
-          } else {
-            s = videoPlayingRef.current ? 'video-pause' : 'video-play'
-          }
-        }
-      }
-      else if (t.closest('.btn-primary, .tl-cta, .nav-cta')) s = 'cta'
-      else if (t.closest('h1, h2.section-title, .section-title')) s = 'razor'
-      else if (t.closest('button, a, .work-tile, .proof-card, .career-milestone, .mindset-tab, .scrubber-step, .faq-item, .chip, .timeline-clip')) s = 'interactive'
-      else if (t.closest('input, textarea, [contenteditable]')) s = 'text'
-      setState((prev) => (prev === s ? prev : s))
-    }
-    const handleDown = () => setPressed(true)
-    const handleUp = () => setPressed(false)
-    const handleLeave = () => { if (cursorRef.current) cursorRef.current.style.opacity = '0' }
-    const handleEnter = () => { if (cursorRef.current) cursorRef.current.style.opacity = '1' }
-
-    const animate = () => {
-      cx += (mx - cx) * 0.22
-      cy += (my - cy) * 0.22
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${cx}px, ${cy}px, 0) translate(-50%, -50%)`
-      }
-      raf = requestAnimationFrame(animate)
-    }
-
-    window.addEventListener('mousemove', handleMove, { passive: true })
-    window.addEventListener('mousedown', handleDown)
-    window.addEventListener('mouseup', handleUp)
-    document.addEventListener('mouseleave', handleLeave)
-    document.addEventListener('mouseenter', handleEnter)
-    raf = requestAnimationFrame(animate)
-
-    return () => {
-      document.body.classList.remove('has-custom-cursor')
-      videos.forEach((v) => {
-        v.removeEventListener('play', onPlay)
-        v.removeEventListener('pause', onPause)
-      })
-      window.removeEventListener('mousemove', handleMove)
-      window.removeEventListener('mousedown', handleDown)
-      window.removeEventListener('mouseup', handleUp)
-      document.removeEventListener('mouseleave', handleLeave)
-      document.removeEventListener('mouseenter', handleEnter)
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }, [])
-
-  // Sync body class for showing native cursor when over video controls
-  useEffect(() => {
-    if (state === 'video-controls') {
-      document.body.classList.add('cursor-mode-native')
-    } else {
-      document.body.classList.remove('cursor-mode-native')
-    }
-    return () => document.body.classList.remove('cursor-mode-native')
-  }, [state])
-
-  return (
-    <div ref={cursorRef} className={`custom-cursor cursor-${state} ${pressed ? 'is-pressed' : ''}`}>
-      <span className="cursor-dot" />
-      <span className="cursor-icon" />
-    </div>
-  )
-}
+// Custom cursor removed — using browser defaults for consistency
 
 // --- Timeline Navigation ---
 const timelineSections = [
@@ -605,7 +493,7 @@ export default function Home() {
 
   return (
     <>
-      <CustomCursor />
+      {/* Custom cursor removed */}
       <TimelineNav />
 
       {activeVideo && (
